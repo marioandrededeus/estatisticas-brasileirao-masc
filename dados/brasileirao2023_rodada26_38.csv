@@ -1,0 +1,131 @@
+ano_campeonato,rodada,time_mandante,time_visitante,gols_mandante,gols_visitante
+2023,26,Goiás,EC Bahia,4,6
+2023,26,Vasco da Gama,São Paulo,0,0
+2023,26,Corinthians,Flamengo,1,1
+2023,26,Internacional,Grêmio,3,2
+2023,26,Fluminense,Botafogo,0,2
+2023,26,Palmeiras,Santos,1,2
+2023,26,Fortaleza,América-MG,3,2
+2023,26,Atlético-MG,Coritiba FC,1,2
+2023,26,Atlético-PR,RB Bragantino,1,1
+2023,26,Cuiabá-MT,Cruzeiro,0,0
+2023,27,Fluminense,Corinthians,3,3
+2023,27,Vasco da Gama,Fortaleza,1,0
+2023,27,Palmeiras,Atlético-MG,0,2
+2023,27,Santos,RB Bragantino,1,3
+2023,27,Goiás,São Paulo,2,0
+2023,27,Cruzeiro,Flamengo,0,2
+2023,27,Grêmio,Atlético-PR,1,2
+2023,27,Coritiba FC,Cuiabá-MT,0,3
+2023,27,EC Bahia,Internacional,1,0
+2023,27,América-MG,Botafogo,1,2
+2023,28,Flamengo,Vasco da Gama,1,0
+2023,28,Botafogo,Atlético-PR,1,1
+2023,28,São Paulo,Grêmio,3,0
+2023,28,Corinthians,América-MG,1,1
+2023,28,RB Bragantino,Fluminense,1,0
+2023,28,Atlético-MG,Cruzeiro,0,1
+2023,28,Internacional,Santos,7,1
+2023,28,Coritiba FC,Palmeiras,0,2
+2023,28,EC Bahia,Fortaleza,2,0
+2023,28,Cuiabá-MT,Goiás,1,1
+2023,29,Fluminense,Goiás,5,3
+2023,29,Vasco da Gama,Internacional,1,2
+2023,29,Palmeiras,São Paulo,5,0
+2023,29,Santos,Coritiba FC,2,1
+2023,29,RB Bragantino,Atlético-MG,1,2
+2023,29,Cruzeiro,EC Bahia,3,0
+2023,29,Grêmio,Flamengo,3,2
+2023,29,Atlético-PR,América-MG,3,2
+2023,29,Fortaleza,Botafogo,2,2
+2023,29,Cuiabá-MT,Corinthians,0,1
+2023,30,Flamengo,RB Bragantino,1,0
+2023,30,Botafogo,Cuiabá-MT,0,1
+2023,30,Palmeiras,EC Bahia,1,0
+2023,30,Corinthians,Santos,1,1
+2023,30,Goiás,Vasco da Gama,1,1
+2023,30,Atlético-MG,Fluminense,2,0
+2023,30,Internacional,Coritiba FC,3,4
+2023,30,Atlético-PR,São Paulo,1,1
+2023,30,Fortaleza,Cruzeiro,0,1
+2023,30,América-MG,Grêmio,3,4
+2023,31,Flamengo,Santos,1,2
+2023,31,Botafogo,Palmeiras,3,4
+2023,31,São Paulo,Cruzeiro,1,0
+2023,31,Corinthians,Atlético-PR,1,0
+2023,31,Goiás,RB Bragantino,0,2
+2023,31,Atlético-MG,Fortaleza,3,1
+2023,31,Internacional,América-MG,1,1
+2023,31,Coritiba FC,Grêmio,1,2
+2023,31,EC Bahia,Fluminense,1,0
+2023,31,Cuiabá-MT,Vasco da Gama,0,2
+2023,32,Fluminense,São Paulo,1,0
+2023,32,Vasco da Gama,Botafogo,1,0
+2023,32,Palmeiras,Atlético-PR,1,0
+2023,32,Santos,Cuiabá-MT,0,0
+2023,32,RB Bragantino,Corinthians,1,0
+2023,32,Cruzeiro,Internacional,1,2
+2023,32,Grêmio,EC Bahia,1,0
+2023,32,Coritiba FC,Goiás,0,1
+2023,32,Fortaleza,Flamengo,0,2
+2023,32,América-MG,Atlético-MG,1,1
+2023,33,Flamengo,Palmeiras,3,0
+2023,33,Botafogo,Grêmio,3,4
+2023,33,São Paulo,RB Bragantino,1,0
+2023,33,Corinthians,Atlético-MG,1,1
+2023,33,Goiás,Santos,0,1
+2023,33,Cruzeiro,Vasco da Gama,2,2
+2023,33,Internacional,Fluminense,0,0
+2023,33,Atlético-PR,Fortaleza,1,1
+2023,33,EC Bahia,Cuiabá-MT,0,3
+2023,33,América-MG,Coritiba FC,0,3
+2023,34,Flamengo,Fluminense,1,1
+2023,34,Vasco da Gama,América-MG,2,1
+2023,34,Palmeiras,Internacional,3,0
+2023,34,Santos,São Paulo,0,0
+2023,34,RB Bragantino,Botafogo,2,2
+2023,34,Atlético-MG,Goiás,2,1
+2023,34,Grêmio,Corinthians,0,1
+2023,34,Coritiba FC,Cruzeiro,1,0
+2023,34,EC Bahia,Atlético-PR,1,1
+2023,34,Cuiabá-MT,Fortaleza,2,1
+2023,35,Fluminense,Coritiba FC,2,1
+2023,35,Botafogo,Santos,1,1
+2023,35,São Paulo,Cuiabá-MT,0,0
+2023,35,Corinthians,EC Bahia,1,5
+2023,35,Goiás,Cruzeiro,0,1
+2023,35,Atlético-MG,Grêmio,3,0
+2023,35,Internacional,RB Bragantino,1,0
+2023,35,Atlético-PR,Vasco da Gama,0,0
+2023,35,Fortaleza,Palmeiras,2,2
+2023,35,América-MG,Flamengo,0,3
+2023,36,Flamengo,Atlético-MG,0,3
+2023,36,Vasco da Gama,Corinthians,2,4
+2023,36,Palmeiras,América-MG,4,0
+2023,36,Santos,Fluminense,0,3
+2023,36,RB Bragantino,Fortaleza,1,2
+2023,36,Cruzeiro,Atlético-PR,1,1
+2023,36,Grêmio,Goiás,2,1
+2023,36,Coritiba FC,Botafogo,1,1
+2023,36,EC Bahia,São Paulo,0,1
+2023,36,Cuiabá-MT,Internacional,0,2
+2023,37,Flamengo,Cuiabá-MT,2,1
+2023,37,Botafogo,Cruzeiro,0,0
+2023,37,Palmeiras,Fluminense,1,0
+2023,37,Corinthians,Internacional,1,2
+2023,37,RB Bragantino,Coritiba FC,1,0
+2023,37,Atlético-MG,São Paulo,2,1
+2023,37,Grêmio,Vasco da Gama,1,0
+2023,37,Atlético-PR,Santos,3,0
+2023,37,Fortaleza,Goiás,1,0
+2023,37,América-MG,EC Bahia,3,2
+2023,38,Fluminense,Grêmio,2,3
+2023,38,Vasco da Gama,RB Bragantino,2,1
+2023,38,São Paulo,Flamengo,1,0
+2023,38,Santos,Fortaleza,1,2
+2023,38,Goiás,América-MG,1,0
+2023,38,Cruzeiro,Palmeiras,1,1
+2023,38,Internacional,Botafogo,3,1
+2023,38,Coritiba FC,Corinthians,0,2
+2023,38,EC Bahia,Atlético-MG,4,1
+2023,38,Cuiabá-MT,Atlético-PR,3,0
