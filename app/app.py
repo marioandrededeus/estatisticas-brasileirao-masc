@@ -13,6 +13,7 @@ import base64
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.figure_factory as ff
+from plotly.subplots import make_subplots
 
 from sklearn.metrics import precision_score, recall_score, f1_score
 
@@ -29,7 +30,7 @@ pd.set_option('display.max_rows', 100)
 #Streamlit Config
 st.set_page_config(
 	page_title = 'Brasileirões | Olhar estatístico',
-	page_icon = 'images/logo_brasileirao.jpg',
+	page_icon = 'images/logo_brasileirao.png',
 	layout = 'wide',
 	initial_sidebar_state='collapsed')
 ############################################################################################
@@ -40,7 +41,7 @@ def main():
     df_completo = pd.read_parquet('../dados/df_completo.parquet')
 
     with st.sidebar:
-        st.image('./images/DataIndus_black.png', width = 150)
+        st.image('./images/DataIndus_blue.png', width = 150)
         st.markdown('''<b>DataIndus</b> é uma iniciativa criada pelo cientista de dados e engenheiro mecânico Mario de Deus, de São Paulo/SP - Brasil,
 com o objetivo de compartilhamento de conteúdos relacionados a aplicação de análise e ciência de dados, em diferentes tipos de aplicação, 
 porém com ênfase em contextos industriais. 
@@ -72,17 +73,18 @@ Linkedin: https://www.linkedin.com/in/mario-andre-de-deus/
     ############################################################################################
     c1, c2, c3 = st.columns([.15,.75,.1])
 
-    c1.image('./images/logo_brasileirao.jpg', width = 120)
+    c1.image('./images/logo_brasileirao.png', width = 120)
     c2.markdown(f"<h1 style='text-align: left;'>Brasileirões</h1> <h5 style='text-align: left;'>Sob um olhar estatístico</h5>", unsafe_allow_html=True)
-    c3.image('./images/DataIndus_black.png', width = 90)
+    c3.image('./images/DataIndus_blue.png', width = 90)
 
-    tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
                                         'Home',
                                         'Lista de campeões', 
                                         'Estatísticas por ano', 
                                         'Evolução por rodada', 
                                         'Comparativos', 
-                                        'Distribuições estatísticas'])
+                                        'Distribuições estatísticas',
+                                        'Campeões turno 1 vs 2'])
     
     ########################################################
     ########################################################
@@ -117,27 +119,27 @@ configuração que se mantém até o ano de 2023.
         st.subheader('Lista de Campeões')
         st.divider()
 
-        df_plot = df_completo.loc[(df_completo.classificacao == 1) & (df_completo.rodada == 38)][['ano_campeonato','time']].sort_values('ano_campeonato', ascending = False).reset_index(drop=True)
+        df_plot = df_completo.loc[(df_completo.classificacao_final == 1) & (df_completo.rodada == 38)][['ano_campeonato','time']].sort_values('ano_campeonato', ascending = False).reset_index(drop=True)
         lista_anos = np.sort(df_plot.ano_campeonato.unique().tolist())[::-1]
         
         for ano in lista_anos:
             c0, c1, c2, c3, c4, c5 = st.columns([.15,.33,.13,.13,.13,.13])
             df_plot = df_completo.loc[df_completo.ano_campeonato == ano]
-            campeao = df_plot.loc[df_plot.classificacao == 1]['time'].mode()[0]
+            campeao = df_plot.loc[df_plot.classificacao_final == 1]['time'].mode()[0]
             
             c0.image(f'./images/escudos/{campeao}.png', width = 50)
             c1.metric(str(ano), campeao)
 
-            pontos_campeao = df_plot.loc[(df_plot.classificacao == 1) & (df_plot.rodada == 38)]['pontos_acum']
+            pontos_campeao = df_plot.loc[(df_plot.classificacao_final == 1) & (df_plot.rodada == 38)]['pontos_acum']
             c2.metric('Pontos', pontos_campeao)
 
-            vitorias_campeao = df_plot.loc[(df_plot.classificacao == 1) & (df_plot.rodada == 38)]['vitorias_acum']
+            vitorias_campeao = df_plot.loc[(df_plot.classificacao_final == 1) & (df_plot.rodada == 38)]['vitorias_acum']
             c3.metric('Vitórias', vitorias_campeao)
 
-            saldo_gols_campeao = int(df_plot.loc[(df_plot.classificacao == 1) & (df_plot.rodada == 38)]['saldo_gols_acum'])
+            saldo_gols_campeao = int(df_plot.loc[(df_plot.classificacao_final == 1) & (df_plot.rodada == 38)]['saldo_gols_acum'])
             c4.metric('Saldo de gols', saldo_gols_campeao)
 
-            gols_pro_campeao = int(df_plot.loc[(df_plot.classificacao == 1) & (df_plot.rodada == 38)]['gols_pro_acum'])
+            gols_pro_campeao = int(df_plot.loc[(df_plot.classificacao_final == 1) & (df_plot.rodada == 38)]['gols_pro_acum'])
             c5.metric('Gols pro', gols_pro_campeao)
 
             st.divider()
@@ -151,45 +153,44 @@ configuração que se mantém até o ano de 2023.
         c1, _ = st.columns([.3,.7])
         choose_year = c1.number_input('Escolher ano', min_value = int(df_completo.ano_campeonato.min()), max_value = int(df_completo.ano_campeonato.max()), value = df_completo.ano_campeonato.max())
         df_plot = df_completo.loc[df_completo.ano_campeonato == choose_year]
-        classificacao = df_plot.groupby('classificacao').agg({'time': 'first'}).reset_index(drop = False)
+        classificacao_final = df_plot.groupby('classificacao_final').agg({'time': 'first'}).reset_index(drop = False)
         st.title(f'Brasileirão {choose_year}')
 
         c0, c1, c2, c3, c4, c5 = st.columns([.15,.33,.13,.13,.13,.13])
-        campeao = df_plot.loc[df_plot.classificacao == 1]['time'].mode()[0]
+        campeao = df_plot.loc[df_plot.classificacao_final == 1]['time'].mode()[0]
 
         c0.image(f'./images/escudos/{campeao}.png', width = 50)
 
         c1.metric('Campeão', campeao)
 
-        pontos_campeao = df_plot.loc[(df_plot.classificacao == 1) & (df_plot.rodada == 38)]['pontos_acum']
+        pontos_campeao = df_plot.loc[(df_plot.classificacao_final == 1) & (df_plot.rodada == 38)]['pontos_acum']
         c2.metric('Pontos', pontos_campeao)
 
-        vitorias_campeao = df_plot.loc[(df_plot.classificacao == 1) & (df_plot.rodada == 38)]['vitorias_acum']
+        vitorias_campeao = df_plot.loc[(df_plot.classificacao_final == 1) & (df_plot.rodada == 38)]['vitorias_acum']
         c3.metric('Vitórias', vitorias_campeao)
 
-        saldo_gols_campeao = int(df_plot.loc[(df_plot.classificacao == 1) & (df_plot.rodada == 38)]['saldo_gols_acum'])
+        saldo_gols_campeao = int(df_plot.loc[(df_plot.classificacao_final == 1) & (df_plot.rodada == 38)]['saldo_gols_acum'])
         c4.metric('Saldo de gols', saldo_gols_campeao)
 
-        gols_pro_campeao = int(df_plot.loc[(df_plot.classificacao == 1) & (df_plot.rodada == 38)]['gols_pro_acum'])
+        gols_pro_campeao = int(df_plot.loc[(df_plot.classificacao_final == 1) & (df_plot.rodada == 38)]['gols_pro_acum'])
         c5.metric('Gols pro', gols_pro_campeao)
 
-        #classificacao
-        with st.expander('Classificacao geral', expanded = False):
-            st.write(classificacao)
+        #classificacao_final
+        with st.expander('classificacao_final geral', expanded = False):
+            st.write(classificacao_final)
 
         #tabela de jogos
         with st.expander('Tabela de jogos', expanded = False):
 
-            df_tabela_jogos = df_plot[['ano_campeonato', 'rodada', 'time', 'adversário', 'gols_pro', 'gols_contra', 'classificacao']].copy()
-            df_tabela_jogos.rename(columns=({'classificacao':'classificacao_final'}), inplace = True)
+            df_tabela_jogos = df_plot[['ano_campeonato', 'rodada', 'time', 'adversário', 'gols_pro', 'gols_contra', 'classificacao_1o_turno','classificacao_final']].copy()
 
-            choose_times = st.radio('Escolher times', ['Todos', 'Campeão','G4', 'G6', 'Rebaixados', 'Selecionar'], horizontal = True)
+            choose_times = st.radio('Escolher times', ['Todos', 'Campeão', 'Campeão 1o_turno', 'G4', 'Rebaixados', 'Selecionar'], horizontal = True)
             if choose_times == 'Campeão':
-                df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_final == 1][[]]
+                df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_final == 1]
+            elif choose_times == 'Campeão 1o_turno':
+                df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_1o_turno == 1]
             elif choose_times == 'G4':
                 df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_final <= 4]
-            elif choose_times == 'G6':
-                df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_final <= 6]
             elif choose_times == 'Rebaixados':
                 df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_final >= 17]
             elif choose_times == 'Selecionar':
@@ -205,21 +206,21 @@ configuração que se mantém até o ano de 2023.
         st.divider()
 
         with st.expander('Por times', expanded = False):
-            c1, c2, c3 = st.columns([.4,.2,.4])
+            c1, c2, c3 = st.columns([.35,.3,.35])
             choose_year = c1.number_input('Escolher ano ', min_value = int(df_completo.ano_campeonato.min()), max_value = int(df_completo.ano_campeonato.max()), value = df_completo.ano_campeonato.max())
             choose_metric = c1.selectbox('Escolher a métrica', ['pontos_acum','vitorias_acum','empates_acum','derrotas_acum','gols_pro_acum','gols_contra_acum','saldo_gols_acum'])
-            choose_times = c2.radio('Escolher times ', ['Todos', 'Campeão','G4', 'G6', 'Rebaixados', 'Selecionar'], horizontal=False)
+            choose_times = c2.radio('Escolher times ', ['Todos', 'Campeão','Campeão 1o_turno','G4', 'Rebaixados', 'Selecionar'], horizontal=False)
             
             df_plot = df_completo.loc[df_completo.ano_campeonato == choose_year]
 
             if choose_times == 'Campeão':
-                df_plot = df_plot.loc[df_completo.classificacao == 1]
+                df_plot = df_plot.loc[df_completo.classificacao_final == 1]
+            elif choose_times == 'Campeão 1o_turno':
+                df_plot = df_plot.loc[df_completo.classificacao_1o_turno == 1]
             elif choose_times == 'G4':
-                df_plot = df_plot.loc[df_completo.classificacao <= 4]
-            elif choose_times == 'G6':
-                df_plot = df_plot.loc[df_completo.classificacao <= 6]
+                df_plot = df_plot.loc[df_completo.classificacao_final <= 4]
             elif choose_times == 'Rebaixados':
-                df_plot = df_plot.loc[df_completo.classificacao >= 17]
+                df_plot = df_plot.loc[df_completo.classificacao_final >= 17]
             elif choose_times == 'Selecionar':
                 list_times = c3.multiselect('Selecionar times', df_completo.time.unique(), default = df_completo.time.unique()[0])
                 df_plot = df_plot.loc[df_completo.time.isin(list_times)]
@@ -228,7 +229,7 @@ configuração que se mantém até o ano de 2023.
 
             #plot
             plt.figure(figsize = (20,7))
-            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'time', title = f'Brasileirão {choose_year} | Time(s): {choose_times if choose_times != "Selecionar" else list_times} | Métrica: {choose_metric}', hover_data=['adversário','classificacao'])
+            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'time', title = f'Brasileirão {choose_year} | Time(s): {choose_times if choose_times != "Selecionar" else list_times} | Métrica: {choose_metric}', hover_data=['adversário','classificacao_final'])
             fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
             st.plotly_chart(fig)
 
@@ -247,12 +248,15 @@ configuração que se mantém até o ano de 2023.
 
             choose_metric = c3.selectbox('Escolher a métrica ', ['pontos_acum','vitorias_acum','empates_acum','derrotas_acum','gols_pro_acum','gols_contra_acum','saldo_gols_acum'])
 
-            choose_times = c4.radio('Escolher times  ', ['Campeões', 'Selecionar'])
+            choose_times = c4.radio('Escolher times  ', ['Campeões', 'Campeões 1o_turno','Selecionar'])
         
             df_plot = df_completo.loc[df_completo.ano_campeonato.between(filter_year_start, filter_year_end)]
 
             if choose_times == 'Campeões':
-                df_plot = df_plot.loc[df_completo.classificacao == 1]
+                df_plot = df_plot.loc[df_completo.classificacao_final == 1]
+            
+            elif choose_times == 'Campeões 1o_turno':
+                df_plot = df_plot.loc[df_completo.classificacao_1o_turno == 1]
             
             else: #'Selecionar':
                 # c1,_,_,_ = st.columns(4)
@@ -261,7 +265,7 @@ configuração que se mantém até o ano de 2023.
 
             #plot
             plt.figure(figsize = (20,7))
-            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'ano_campeonato', title = f'Brasileirão {filter_year_start} a {filter_year_end} | Time(s): {choose_times if choose_times != "Selecionar" else chosen_time} | Métrica: {choose_metric}', hover_name = 'time', hover_data=['adversário','classificacao'])
+            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'ano_campeonato', title = f'Brasileirão {filter_year_start} a {filter_year_end} | Time(s): {choose_times if choose_times != "Selecionar" else chosen_time} | Métrica: {choose_metric}', hover_name = 'time', hover_data=['adversário','classificacao_final'])
             fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
             st.plotly_chart(fig)
             if st.toggle('Mostrar tabela '):
@@ -278,7 +282,7 @@ configuração que se mantém até o ano de 2023.
         #Comparativo entre todos os times por temporada        
         c1, c2 = st.columns([.3,.7])
         choose_metric = c1.selectbox('Escolher a métrica  ', ['pontos_acum','vitorias_acum','empates_acum','derrotas_acum','gols_pro_acum','gols_contra_acum','saldo_gols_acum'])
-        choose_times = c2.radio(' Escolher times', ['Todos','Campeões','G4', 'Rebaixados', 'Selecionar'], horizontal = True)
+        choose_times = c2.radio(' Escolher times', ['Todos','Campeões','Campeões 1o_turno','G4', 'Rebaixados', 'Selecionar'], horizontal = True)
 
         c1, c2, c3 = st.columns([.4,.4,.2])
         filtro_ano1 = c1.number_input('Ano 1', value = df_completo.ano_campeonato.unique()[-2], 
@@ -290,11 +294,13 @@ configuração que se mantém até o ano de 2023.
         df_plot = df_completo.loc[(df_completo.ano_campeonato == filtro_ano1) | (df_completo.ano_campeonato == filtro_ano2) ]
 
         if choose_times == 'Campeões':
-            df_plot = df_plot.loc[df_plot.classificacao == 1]
+            df_plot = df_plot.loc[df_plot.classificacao_final == 1]
+        elif choose_times == 'Campeões 1o_turno':
+            df_plot = df_plot.loc[df_plot.classificacao_1o_turno == 1]
         elif choose_times == 'G4':
-            df_plot = df_plot.loc[df_plot.classificacao <= 4]
+            df_plot = df_plot.loc[df_plot.classificacao_final <= 4]
         elif choose_times == 'Rebaixados':
-            df_plot = df_plot.loc[df_plot.classificacao >= 17]
+            df_plot = df_plot.loc[df_plot.classificacao_final >= 17]
         elif choose_times == 'Selecionar':
             chosen_time = c3.selectbox('Selecionar time', df_plot.time.unique())
             df_plot = df_plot.loc[df_plot.time == chosen_time]
@@ -306,7 +312,7 @@ configuração que se mantém até o ano de 2023.
                         facet_col= 'ano_campeonato', 
                         facet_col_spacing = .05,
                         title = f'Brasileirão | {filtro_ano1} vs {filtro_ano2} | Time(s): {choose_times if choose_times != "Selecionar" else chosen_time} | Métrica: {choose_metric}',
-                        hover_data=['classificacao'])
+                        hover_data=['classificacao_final'])
         fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
         fig.update_layout(showlegend=True, width=900, height=400)
         st.plotly_chart(fig)
@@ -335,11 +341,11 @@ configuração que se mantém até o ano de 2023.
         df_plot = df_completo.loc[(df_completo.ano_campeonato.between(filter_year_start, filter_year_end)) & (df_completo.rodada == 38)]
 
         if choose_times == 'G4':
-            df_plot = df_plot.loc[df_plot.classificacao <= 4]
+            df_plot = df_plot.loc[df_plot.classificacao_final <= 4]
         elif choose_times == 'G6':
-            df_plot = df_plot.loc[df_plot.classificacao <= 6]
+            df_plot = df_plot.loc[df_plot.classificacao_final <= 6]
         elif choose_times == 'Rebaixados':
-            df_plot = df_plot.loc[df_plot.classificacao >= 17]
+            df_plot = df_plot.loc[df_plot.classificacao_final >= 17]
         
         with st.expander('Gráfico boxplot', expanded = False):
             #boxplot
@@ -371,6 +377,52 @@ configuração que se mantém até o ano de 2023.
         if st.toggle(' Mostrar tabela '):
             st.markdown(df_plot.shape)
             st.table(df_plot.reset_index(drop = True))
+
+    ########################################################
+    ########################################################
+    with tab6:
+        st.subheader('Campeões do turno 1 vs turno 2')
+        st.divider() 
+
+        c1, c2 = st.columns(2)
+
+        #Classificação final dos times campeões do 1o.turno
+        df_campeoes_turno1_qual_final = df_completo.loc[(df_completo.classificacao_1o_turno == 1) & (df_completo.rodada==38)][['ano_campeonato',
+                                                                                                                    'rodada',
+                                                                                                                    'time',
+                                                                                                                    'classificacao_1o_turno',
+                                                                                                                    'classificacao_final']]
+
+        df_plot = df_campeoes_turno1_qual_final.classificacao_final.value_counts()
+        
+        fig1 = px.bar(df_plot, 
+                        x = df_plot.index,
+                        y = 'classificacao_final', 
+                        labels = {'classificacao_final':'qtd de times',
+                                'index':'classificação final'},
+                        title = 'Classificação final dos times campeões do 1o.turno',
+                        width = 500)
+        c1.plotly_chart(fig1)
+
+
+        #Classificação no 1o.turno dos times campeões
+        df_campeoes_final_qual_turno1 = df_completo.loc[(df_completo.classificacao_final == 1) & (df_completo.rodada==38)][['ano_campeonato',
+                                                                                                                    'rodada',
+                                                                                                                    'time',
+                                                                                                                    'classificacao_1o_turno',
+                                                                                                                    'classificacao_final']]
+
+        df_plot = df_campeoes_final_qual_turno1.classificacao_1o_turno.value_counts()
+
+        fig2 = px.bar(df_plot, 
+                        x = df_plot.index,
+                        y = 'classificacao_1o_turno', 
+                        labels = {'classificacao_1o_turno':'qtd de times',
+                                'index':'classificação no 1o. turno'},
+                        title = 'Classificação no 1o.turno dos times campeões ',
+                        width = 500)
+        c2.plotly_chart(fig2)
+
 
 
 if __name__ == '__main__':
