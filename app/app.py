@@ -215,7 +215,7 @@ configuração que se mantém até o ano de 2023.
 
             #plot
             plt.figure(figsize = (20,7))
-            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'time', title = f'Brasileirão {choose_year} | Time(s): {choose_times if choose_times != "Selecionar" else list_times} | Métrica: {choose_metric}', hover_data=['adversário','classificacao_final'])
+            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'time', title = f'Brasileirão {choose_year} | Time(s): {choose_times if choose_times != "Selecionar" else list_times} | Métrica: {choose_metric}', hover_data=['adversário','classificacao_1o_turno','classificacao_final'])
             fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
             st.plotly_chart(fig)
 
@@ -251,7 +251,7 @@ configuração que se mantém até o ano de 2023.
 
             #plot
             plt.figure(figsize = (20,7))
-            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'ano_campeonato', title = f'Brasileirão {filter_year_start} a {filter_year_end} | Time(s): {choose_times if choose_times != "Selecionar" else chosen_time} | Métrica: {choose_metric}', hover_name = 'time', hover_data=['adversário','classificacao_final'])
+            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'ano_campeonato', title = f'Brasileirão {filter_year_start} a {filter_year_end} | Time(s): {choose_times if choose_times != "Selecionar" else chosen_time} | Métrica: {choose_metric}', hover_name = 'time', hover_data=['adversário','classificacao_1o_turno','classificacao_final'])
             fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
             st.plotly_chart(fig)
             if st.toggle('Mostrar tabela '):
