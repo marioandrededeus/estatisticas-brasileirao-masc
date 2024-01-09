@@ -27,7 +27,7 @@ def main():
     df_completo = pd.read_parquet('../dados/df_completo.parquet')
 
     with st.sidebar:
-        st.image('./images/DataIndus_blue.png', width = 150)
+        st.image('./images/DataIndus_green.png', width = 150)
         st.markdown('''<b>DataIndus</b> é uma iniciativa criada pelo cientista de dados e engenheiro mecânico Mario de Deus, de São Paulo/SP - Brasil,
 com o objetivo de compartilhamento de conteúdos relacionados a aplicação de análise e ciência de dados, em diferentes tipos de aplicação, 
 porém com ênfase em contextos industriais. 
