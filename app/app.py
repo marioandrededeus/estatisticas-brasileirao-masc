@@ -59,9 +59,9 @@ Linkedin: https://www.linkedin.com/in/mario-andre-de-deus/
     ############################################################################################
     c1, c2, c3 = st.columns([.15,.75,.1])
 
-    c1.image('./images/logo_brasileirao.png', width = 120)
+    c1.image('./images/logo_brasileirao_shadow.png', width = 120)
     c2.markdown(f"<h1 style='text-align: left;'>Brasileirões</h1> <h5 style='text-align: left;'>Sob um olhar estatístico</h5>", unsafe_allow_html=True)
-    c3.image('./images/DataIndus_blue.png', width = 90)
+    c3.image('./images/DataIndus_green.png', width = 90)
 
     tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
                                         'Home',
