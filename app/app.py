@@ -25,6 +25,7 @@ def main():
     
     #loading data
     df_completo = pd.read_parquet('../dados/df_completo.parquet')
+    df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']] = df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']].astype('int64')
 
     with st.sidebar:
         st.image('./images/DataIndus_green.png', width = 150)
@@ -183,7 +184,7 @@ configuração que se mantém até o ano de 2023.
                 list_times = st.multiselect('Selecionar times', df_tabela_jogos.time.unique(), default = df_tabela_jogos.time.unique()[0])
                 df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.time.isin(list_times)]
 
-            st.table(df_tabela_jogos.sort_values(['rodada', 'classificacao_final']).reset_index(drop = True))
+            st.table(df_tabela_jogos.sort_values(['rodada', 'classificacao_final']).reset_index(drop = True).iloc[:,:6])
 
     ########################################################
     ########################################################
