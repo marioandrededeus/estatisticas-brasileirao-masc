@@ -163,7 +163,7 @@ configuração que se mantém até o ano de 2023.
         c5.metric('Gols pro', gols_pro_campeao)
 
         #classificacao_final
-        with st.expander('classificacao_final geral', expanded = False):
+        with st.expander('Classificação Final Geral', expanded = False):
             st.write(classificacao_final)
 
         #tabela de jogos
@@ -334,7 +334,7 @@ configuração que se mantém até o ano de 2023.
         elif choose_times == 'Rebaixados':
             df_plot = df_plot.loc[df_plot.classificacao_final >= 17]
         
-        with st.expander('Gráfico boxplot', expanded = False):
+        with st.expander('Gráfico Boxplot', expanded = False):
             #boxplot
             plt.figure(figsize = (30,7))
             fig = px.box(df_plot, x ='ano_campeonato', y = choose_metric, hover_data=['time','adversário'] ,title = f'Distribuição | Time(s): {choose_times} | Métrica: {choose_metric}')
@@ -445,7 +445,7 @@ configuração que se mantém até o ano de 2023.
             c2.plotly_chart(fig)
 
 ###########################################################################
-        with st.expander('Gráfico de colunas', expanded = False):
+        with st.expander('Gráfico de Colunas', expanded = False):
             c1, c2 = st.columns(2)
 
             #Classificação final dos times campeões do 1o.turno
