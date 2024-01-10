@@ -462,9 +462,12 @@ configuração que se mantém até o ano de 2023.
                             x = df_plot.index,
                             y = 'classificacao_final', 
                             labels = {'classificacao_final':'qtd de times',
-                                    'index':'classificação final'},
-                            title = 'Classificação Final dos Times "Campeões" do 1o Turno',
-                            width = 500)
+                                    'index':'classificação final'})
+            fig1.update_layout(
+                hovermode = 'x',
+                title = 'Classificação Final dos Times "Campeões" do 1o Turno',
+                font = dict(size = 15),
+                width = 500)
             c1.plotly_chart(fig1)
 
 
@@ -481,9 +484,12 @@ configuração que se mantém até o ano de 2023.
                             x = df_plot.index,
                             y = 'classificacao_1o_turno', 
                             labels = {'classificacao_1o_turno':'qtd de times',
-                                    'index':'classificação no 1o. turno'},
-                            title = 'Classificação no 1o Turno dos Times Campeões',
-                            width = 500)
+                                    'index':'classificação no 1o. turno'})
+            fig2.update_layout(
+                hovermode = 'x',
+                title = 'Classificação no 1o Turno dos Times Campeões',
+                font = dict(size = 15),
+                width = 500)
             c2.plotly_chart(fig2)
 
 
