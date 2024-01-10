@@ -24,7 +24,7 @@ def main():
 ############################################################################################
     
     #loading data
-    df_completo = pd.read_parquet('./df_completo.parquet')
+    df_completo = pd.read_parquet('df_completo.parquet')
     df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']] = df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']].astype('int64')
 
     with st.sidebar:
