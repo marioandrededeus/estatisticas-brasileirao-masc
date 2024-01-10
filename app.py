@@ -370,125 +370,123 @@ configuração que se mantém até o ano de 2023.
     ########################################################
     with tab6:
 
-        with st.expander('Gráfico Sankey', expanded = True):
+        c1, c2 = st.columns(2)
+        #####################################################
+        #classificação turno1 para classificação final
+        #####################################################
+        df_plot = df_completo.groupby(['ano_campeonato','time'])[['classificacao_1o_turno','classificacao_final']].max().reset_index()
+        df_plot = df_plot.groupby(['classificacao_1o_turno','classificacao_final'])['time'].count().reset_index()
+        df_plot = df_plot.loc[df_plot.classificacao_1o_turno == 1]
 
-            c1, c2 = st.columns(2)
-            #####################################################
-            #classificação turno1 para classificação final
-            #####################################################
-            df_plot = df_completo.groupby(['ano_campeonato','time'])[['classificacao_1o_turno','classificacao_final']].max().reset_index()
-            df_plot = df_plot.groupby(['classificacao_1o_turno','classificacao_final'])['time'].count().reset_index()
-            df_plot = df_plot.loc[df_plot.classificacao_1o_turno == 1]
+        #data
+        label = ['Turno1_1o',   #0
 
-            #data
-            label = ['Turno1_1o',   #0
+                'Final_1o.',    #1
+                'Final_2o.',    #2
+                'Final_3o.',    #3
+                'Final_4o.',    #4
+                'Final_5o.']    #5
 
-                    'Final_1o.',    #1
-                    'Final_2o.',    #2
-                    'Final_3o.',    #3
-                    'Final_4o.',    #4
-                    'Final_5o.']    #5
+        source = [0,0,0,0]
+        target = [1,2,4,5]
+        value = df_plot.time.tolist()
 
-            source = [0,0,0,0]
-            target = [1,2,4,5]
-            value = df_plot.time.tolist()
+        #data to dict, dict to sankey
+        link = dict(source = source, target = target, value = value)
+        node = dict(label = label, pad = 35, thickness = 10)
+        data = go.Sankey(link = link, node = node, orientation = 'h')
 
-            #data to dict, dict to sankey
-            link = dict(source = source, target = target, value = value)
-            node = dict(label = label, pad = 35, thickness = 10)
-            data = go.Sankey(link = link, node = node, orientation = 'h')
+        fig = go.Figure(data)
+        fig.update_layout(
+            hovermode = 'x',
+            title = 'Classificação Final dos Times "Campeões" do 1o Turno',
+            font = dict(size = 15, color = 'white'),
+            width = 500,
+        )
+        c1.plotly_chart(fig)
 
-            fig = go.Figure(data)
-            fig.update_layout(
-                hovermode = 'x',
-                title = 'Classificação Final dos Times "Campeões" do 1o Turno',
-                font = dict(size = 15, color = 'white'),
-                width = 500,
+        ###################################################
+        #classificação turno1 para campeões
+        df_plot = df_completo.groupby(['ano_campeonato','time'])[['classificacao_1o_turno','classificacao_final']].max().reset_index()
+        df_plot = df_plot.groupby(['classificacao_final','classificacao_1o_turno'])['time'].count().reset_index()
+        df_plot = df_plot.loc[df_plot.classificacao_final == 1]
+
+        #data
+        label = ['Campeões',   #0
+
+                'Turno1_1o.',    #1
+                'Turno1_2o.',    #2
+                'Turno1_3o.',    #3
+                'Turno1_4o.',    #4
+                'Turno1_5o.',    #5
+                'Turno1_6o.',    #6
+                'Turno1_7o.',    #7
+                'Turno1_8o.',    #8
+                'Turno1_9o.',    #9
+                'Turno1_10o.']   #10
+
+        target = [0,0,0,0,0,0]
+        source = [1,2,3,4,6,10]
+        value = df_plot.time.tolist()
+
+        #data to dict, dict to sankey
+        link = dict(source = source, target = target, value = value)
+        node = dict(label = label, pad = 35, thickness = 10)
+        data = go.Sankey(link = link, node = node, orientation = 'h')
+
+        fig = go.Figure(data)
+        fig.update_layout(
+            hovermode = 'x',
+            title = 'Classificação no 1o Turno dos Times Campeões',
+            font = dict(size = 15, color = 'white'),
+            width = 500,
             )
-            c1.plotly_chart(fig)
-
-            ###################################################
-            #classificação turno1 para campeões
-            df_plot = df_completo.groupby(['ano_campeonato','time'])[['classificacao_1o_turno','classificacao_final']].max().reset_index()
-            df_plot = df_plot.groupby(['classificacao_final','classificacao_1o_turno'])['time'].count().reset_index()
-            df_plot = df_plot.loc[df_plot.classificacao_final == 1]
-
-            #data
-            label = ['Campeões',   #0
-
-                    'Turno1_1o.',    #1
-                    'Turno1_2o.',    #2
-                    'Turno1_3o.',    #3
-                    'Turno1_4o.',    #4
-                    'Turno1_5o.',    #5
-                    'Turno1_6o.',    #6
-                    'Turno1_7o.',    #7
-                    'Turno1_8o.',    #8
-                    'Turno1_9o.',    #9
-                    'Turno1_10o.']   #10
-
-            target = [0,0,0,0,0,0]
-            source = [1,2,3,4,6,10]
-            value = df_plot.time.tolist()
-
-            #data to dict, dict to sankey
-            link = dict(source = source, target = target, value = value)
-            node = dict(label = label, pad = 35, thickness = 10)
-            data = go.Sankey(link = link, node = node, orientation = 'h')
-
-            fig = go.Figure(data)
-            fig.update_layout(
-                hovermode = 'x',
-                title = 'Classificação no 1o Turno dos Times Campeões',
-                font = dict(size = 15, color = 'white'),
-                width = 500,
-                )
-            c2.plotly_chart(fig)
+        c2.plotly_chart(fig)
 
 ###########################################################################
-        with st.expander('Gráfico de Colunas', expanded = False):
-            c1, c2 = st.columns(2)
+        # with st.expander('Gráfico de Colunas', expanded = False):
+        #     c1, c2 = st.columns(2)
 
-            #Classificação final dos times campeões do 1o.turno
-            df_campeoes_turno1_qual_final = df_completo.loc[(df_completo.classificacao_1o_turno == 1) & (df_completo.rodada==38)][['ano_campeonato',
-                                                                                                                        'rodada',
-                                                                                                                        'time',
-                                                                                                                        'classificacao_1o_turno',
-                                                                                                                        'classificacao_final']]
+        #     #Classificação final dos times campeões do 1o.turno
+        #     df_campeoes_turno1_qual_final = df_completo.loc[(df_completo.classificacao_1o_turno == 1) & (df_completo.rodada==38)][['ano_campeonato',
+        #                                                                                                                 'rodada',
+        #                                                                                                                 'time',
+        #                                                                                                                 'classificacao_1o_turno',
+        #                                                                                                                 'classificacao_final']]
 
-            df_plot = df_campeoes_turno1_qual_final.classificacao_final.value_counts().reset_index()
-            fig = px.bar(df_plot, 
-                         x = 'index',
-                        y = 'classificacao_final', 
-                        labels = {'classificacao_final':'qtd de times',
-                                  'index':'classificação final'})
-            fig.update_layout(
-                hovermode = 'x',
-                title = 'Classificação Final dos Times "Campeões" do 1o Turno',
-                font = dict(size = 15),
-                width = 500)
-            c1.plotly_chart(fig)
+        #     df_plot = df_campeoes_turno1_qual_final.classificacao_final.value_counts().reset_index()
+        #     fig = px.bar(df_plot, 
+        #                  x = 'index',
+        #                 y = 'classificacao_final', 
+        #                 labels = {'classificacao_final':'qtd de times',
+        #                           'index':'classificação final'})
+        #     fig.update_layout(
+        #         hovermode = 'x',
+        #         title = 'Classificação Final dos Times "Campeões" do 1o Turno',
+        #         font = dict(size = 15),
+        #         width = 500)
+        #     c1.plotly_chart(fig)
 
 
-            #Classificação no 1o.turno dos times campeões
-            df_campeoes_final_qual_turno1 = df_completo.loc[(df_completo.classificacao_final == 1) & (df_completo.rodada==38)][['ano_campeonato',
-                                                                                                                        'rodada',
-                                                                                                                        'time',
-                                                                                                                        'classificacao_1o_turno',
-                                                                                                                        'classificacao_final']]
+        #     #Classificação no 1o.turno dos times campeões
+        #     df_campeoes_final_qual_turno1 = df_completo.loc[(df_completo.classificacao_final == 1) & (df_completo.rodada==38)][['ano_campeonato',
+        #                                                                                                                 'rodada',
+        #                                                                                                                 'time',
+        #                                                                                                                 'classificacao_1o_turno',
+        #                                                                                                                 'classificacao_final']]
 
-            df_plot = df_campeoes_final_qual_turno1.classificacao_1o_turno.value_counts().reset_index()
-            fig = px.bar(df_plot, 
-                         x = 'index',
-                         y = 'classificacao_1o_turno', 
-                         labels = {'classificacao_1o_turno':'qtd de times',
-                                   'index':'classificação no 1o. turno'})
-            fig.update_layout(
-                hovermode = 'x',
-                title = 'Classificação no 1o Turno dos Times Campeões',
-                font = dict(size = 15),
-                width = 500)
-            c2.plotly_chart(fig)
+        #     df_plot = df_campeoes_final_qual_turno1.classificacao_1o_turno.value_counts().reset_index()
+        #     fig = px.bar(df_plot, 
+        #                  x = 'index',
+        #                  y = 'classificacao_1o_turno', 
+        #                  labels = {'classificacao_1o_turno':'qtd de times',
+        #                            'index':'classificação no 1o. turno'})
+        #     fig.update_layout(
+        #         hovermode = 'x',
+        #         title = 'Classificação no 1o Turno dos Times Campeões',
+        #         font = dict(size = 15),
+        #         width = 500)
+        #     c2.plotly_chart(fig)
 
 if __name__ == '__main__':
         main()
