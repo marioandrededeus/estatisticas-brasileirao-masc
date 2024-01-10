@@ -457,17 +457,17 @@ configuração que se mantém até o ano de 2023.
                                                                                                                         'classificacao_final']]
 
             df_plot = df_campeoes_turno1_qual_final.classificacao_final.value_counts().reset_index()
-            fig1 = px.bar(df_plot, 
-                            x = 'index',
-                            y = 'classificacao_final', 
-                            labels = {'classificacao_final':'qtd de times',
-                                    'index':'classificação final'})
-            fig1.update_layout(
+            fig = px.bar(df_plot, 
+                         x = 'index',
+                        y = 'classificacao_final', 
+                        labels = {'classificacao_final':'qtd de times',
+                                  'index':'classificação final'})
+            fig.update_layout(
                 hovermode = 'x',
                 title = 'Classificação Final dos Times "Campeões" do 1o Turno',
                 font = dict(size = 15),
                 width = 500)
-            c1.plotly_chart(fig1)
+            c1.plotly_chart(fig)
 
 
             #Classificação no 1o.turno dos times campeões
@@ -478,19 +478,17 @@ configuração que se mantém até o ano de 2023.
                                                                                                                         'classificacao_final']]
 
             df_plot = df_campeoes_final_qual_turno1.classificacao_1o_turno.value_counts().reset_index()
-            fig2 = px.bar(df_plot, 
-                            x = 'index',
-                            y = 'classificacao_1o_turno', 
-                            labels = {'classificacao_1o_turno':'qtd de times',
-                                    'index':'classificação no 1o. turno'})
-            fig2.update_layout(
+            fig = px.bar(df_plot, 
+                         x = 'index',
+                         y = 'classificacao_1o_turno', 
+                         labels = {'classificacao_1o_turno':'qtd de times',
+                                   'index':'classificação no 1o. turno'})
+            fig.update_layout(
                 hovermode = 'x',
                 title = 'Classificação no 1o Turno dos Times Campeões',
                 font = dict(size = 15),
                 width = 500)
-            c2.plotly_chart(fig2)
-
-
+            c2.plotly_chart(fig)
 
 if __name__ == '__main__':
         main()
