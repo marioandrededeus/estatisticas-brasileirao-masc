@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import plotly.figure_factory as ff
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+import os
 
 from plotly.offline import init_notebook_mode
 init_notebook_mode(connected=True)
@@ -22,6 +23,8 @@ st.set_page_config(
 ############################################################################################
 def main():
 ############################################################################################
+    # os.chdir('./estatisticas-brasileirao-masc')
+    # st.write(os.getcwd())
     
     #loading data
     # df_completo = pd.read_parquet('./df_completo.parquet')
@@ -56,6 +59,8 @@ com temas industriais como:
 Youtube: https://www.youtube.com/@dataindus/
                     
 Linkedin: https://www.linkedin.com/in/mario-andre-de-deus/
+                    
+Medium: https://medium.com/@mariodedeus.engenharia/brasileir%C3%A3o-sob-um-olhar-estat%C3%ADstico-a263b97e1c6a
 ''', unsafe_allow_html=True)
 
     ############################################################################################
@@ -344,7 +349,7 @@ configuração que se mantém até o ano de 2023.
             
             st.plotly_chart(fig)
 
-        with st.expander('Gráfico de Curva Densidade Probabilidade', expanded = False):
+        with st.expander('Curva de distribuição', expanded = False):
             #kdeplot
             group_labels = []
             hist_data = []
@@ -357,7 +362,7 @@ configuração que se mantém até o ano de 2023.
             fig = ff.create_distplot(hist_data,group_labels, curve_type = 'kde', show_hist=False, show_rug = False)
 
             # Add title
-            fig.update_layout(title_text= f'Curva Densidade Probabilidade: {choose_metric} | Times: {choose_times}')
+            fig.update_layout(title_text= f'Distribuição dos pontos na classificação final: {choose_metric} | Times: {choose_times}')
             fig.show()
             st.plotly_chart(fig)
 
