@@ -456,10 +456,9 @@ configuração que se mantém até o ano de 2023.
                                                                                                                         'classificacao_1o_turno',
                                                                                                                         'classificacao_final']]
 
-            df_plot = df_campeoes_turno1_qual_final.classificacao_final.value_counts()
-            
+            df_plot = df_campeoes_turno1_qual_final.classificacao_final.value_counts().reset_index()
             fig1 = px.bar(df_plot, 
-                            x = df_plot.index,
+                            x = 'index',
                             y = 'classificacao_final', 
                             labels = {'classificacao_final':'qtd de times',
                                     'index':'classificação final'})
@@ -478,10 +477,9 @@ configuração que se mantém até o ano de 2023.
                                                                                                                         'classificacao_1o_turno',
                                                                                                                         'classificacao_final']]
 
-            df_plot = df_campeoes_final_qual_turno1.classificacao_1o_turno.value_counts()
-
+            df_plot = df_campeoes_final_qual_turno1.classificacao_1o_turno.value_counts().reset_index()
             fig2 = px.bar(df_plot, 
-                            x = df_plot.index,
+                            x = 'index',
                             y = 'classificacao_1o_turno', 
                             labels = {'classificacao_1o_turno':'qtd de times',
                                     'index':'classificação no 1o. turno'})
