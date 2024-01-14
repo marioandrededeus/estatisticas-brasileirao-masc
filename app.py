@@ -344,7 +344,7 @@ configuração que se mantém até o ano de 2023.
                     maior a variação de pontos entre os times daquele ano.''')
         st.divider()    
 
-        c1, c2, c3, _ = st.columns([.1,.15,.15,.6])
+        c1, c2, c3, _ = st.columns([.15,.25,.15,.45])
         df_plot = df_completo.loc[df_completo.rodada == 38]
         
         order_year_by = c1.radio('Ordernar por', ('Ano', 'Desvio Padrão'))
