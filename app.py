@@ -344,11 +344,12 @@ configuração que se mantém até o ano de 2023.
                     maior a variação de pontos entre os times daquele ano.''')
         st.divider()    
 
-        c1, c2, _ = st.columns([.25,.25,.5])
-        df_plot = df_completo.loc[df_completo.rodada == 38]      
+        c1, c2, c3, _ = st.columns([.1,.15,.15,.6])
+        df_plot = df_completo.loc[df_completo.rodada == 38]
         
         order_year_by = c1.radio('Ordernar por', ('Ano', 'Desvio Padrão'))
-        choose_times = c2.radio(' Escolher times ', ['Todos', 'G4', 'G6', 'Rebaixados'])
+        choose_metric = c2.selectbox('Escolher a métrica   ', ['pontos_acum','vitorias_acum','empates_acum','derrotas_acum','gols_pro_acum','gols_contra_acum','saldo_gols_acum'])
+        choose_times = c3.radio(' Escolher times ', ['Todos', 'G4', 'G6', 'Rebaixados'])
 
         if choose_times == 'G4':
             df_plot = df_plot.loc[df_plot.classificacao_final <= 4]
@@ -359,12 +360,11 @@ configuração que se mantém até o ano de 2023.
 
         #desvio padrao
         df_std = df_plot.copy()
-        df_std = df_std.groupby('ano_campeonato')['pontos_acum'].std().reset_index().sort_values('pontos_acum').reset_index(drop = True)
-        df_std.rename(columns=({'pontos_acum':'pontos_acum_std'}), inplace = True)
-
+        df_std = df_std.groupby('ano_campeonato')[choose_metric].std().reset_index().sort_values(choose_metric).reset_index(drop = True)
+        df_std.rename(columns=({choose_metric:choose_metric+'_std'}), inplace = True)
         #ordenar por
         df_plot = df_plot.merge(df_std, on ='ano_campeonato')
-        df_plot = df_plot.sort_values('ano_campeonato' if order_year_by == 'Ano' else 'pontos_acum_std')
+        df_plot = df_plot.sort_values('ano_campeonato' if order_year_by == 'Ano' else choose_metric+'_std')
 
         with st.expander('Gráfico Boxplot', expanded = False):
             #boxplot
