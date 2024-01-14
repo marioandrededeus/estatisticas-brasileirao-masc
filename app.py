@@ -23,8 +23,11 @@ st.set_page_config(
 ############################################################################################
 def main():
 ############################################################################################
-    os.chdir(r'C:\Users\m4005001\Documents\_SG\Pessoal\Estatisticas_Brasileirao\estatisticas-brasileirao-masc')
-    # st.write(os.getcwd())
+    try:
+        os.chdir(r'C:\Users\m4005001\Documents\_SG\Pessoal\Estatisticas_Brasileirao\estatisticas-brasileirao-masc')
+        # st.write(os.getcwd())
+    except:
+        pass
     
     #loading data
     df_completo = pd.read_csv(r'./dados/df_completo.csv', sep = ";")
