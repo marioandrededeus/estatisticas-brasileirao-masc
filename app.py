@@ -339,7 +339,9 @@ configuração que se mantém até o ano de 2023.
                     variação de pontos entre os times daquele ano.
                     \nExiste ainda a opção de ordenar os gráficos por ordem crescente do "Desvio Padrão". 
                     O desvio padrão é uma medida de dispersão utilizada na estatística que indica 
-                    o grau de variação de um conjunto de elementos, neste caso, o número de pontos na classificação final de cada ano.''')
+                    o grau de variação de um conjunto de elementos, neste caso, o número de pontos na 
+                    classificação final de cada ano. Quanto maior o desvio padrão, 
+                    maior a variação de pontos entre os times daquele ano.''')
         st.divider()    
 
         c1, c2, _ = st.columns([.25,.25,.5])
