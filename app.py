@@ -25,7 +25,7 @@ def main():
 ############################################################################################
     try:
         os.chdir(r'C:\Users\m4005001\Documents\_SG\Pessoal\Estatisticas_Brasileirao\estatisticas-brasileirao-masc')
-        # st.write(os.getcwd())
+        # st.write(os.getcwd())#
     except:
         pass
     
