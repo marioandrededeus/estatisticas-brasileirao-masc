@@ -94,9 +94,9 @@ Medium: https://medium.com/@mariodedeus.engenharia/brasileir%C3%A3o-sob-um-olhar
 
                     😪 a pontuação do rebaixamento ter sido maior que a média dos demais anos;
                     
-                    Tais fatos levaram a resenhas entre os amantes do futebol por todo o país.''')
+                    Agora o app está atualizado com os resultados de 2024.''')
         
-        st.info('Mas será que 2023 foi de fato o campeonato mais concorrido da era dos pontos corridos?')
+        st.info('Que tal avaliar a performance dos times, rodada a rodada, e compará-los com os campeões ou z4 dos anos anteriores... Arrisca um palpite sobre quem será o campeão?')
         st.subheader('Explore todos os menus e tire as suas próprias conclusões !')
         st.divider()
 
@@ -105,8 +105,8 @@ Medium: https://medium.com/@mariodedeus.engenharia/brasileir%C3%A3o-sob-um-olhar
 1. Os dados utilizados referem-se aos campeonatos brasileiros de futebol masculino desde o ano 2006. Apesar da era dos pontos corridos ter iniciado em 2003, foi a partir de 2006 que o campeonato passou a contar com 20 times, 
 configuração que se mantém até o ano de 2023.
 2. Fontes utilizadas para o download dos dados brutos:
-    * 2006 a 2023 (até rodada 25): https://basedosdados.org/dataset/c861330e-bca2-474d-9073-bc70744a1b23?table=18835b0d-233e-4857-b454-1fa34a81b4fa
-    * 2023 (rodada 26 a 38): https://www.futexcel.com.br/brasileirao''', unsafe_allow_html=True)
+    * 2006 a 2024 (até rodada 25): https://basedosdados.org/dataset/c861330e-bca2-474d-9073-bc70744a1b23?table=18835b0d-233e-4857-b454-1fa34a81b4fa
+    * 2024 (rodada 26 a 38): https://ge.globo.com/futebol/brasileirao-serie-a/''', unsafe_allow_html=True)
 
     ########################################################
     ########################################################
@@ -273,6 +273,59 @@ configuração que se mantém até o ano de 2023.
             if st.toggle('Mostrar tabela '):
                 st.markdown(df_plot.shape)
                 st.table(df_plot.reset_index(drop = True))
+
+        with st.expander('Comparar um time com o histórico de campeões ou z4', expanded = False):
+            c1, c2, c3, c4 = st.columns(4)
+
+            #filter campeos
+            choose_campeoes_z4 = c1.selectbox('Comparar com:',('Campeões', 'z4'), key = 'choose_campeoes_z4')
+
+            filter_year_start_comparar_campeoes = c2.number_input('De ano:', min_value = df_completo.ano_campeonato.min(),
+                                        max_value = df_completo.ano_campeonato.max(), step = 1, key = 'filter_year_start_comparar_campeoes')
+            
+            filter_year_end_comparar_campeoes = c3.number_input('Até ano:', min_value = df_completo.ano_campeonato.min(),
+                                    max_value = df_completo.ano_campeonato.max(), step = 1, value = df_completo.ano_campeonato.max(), key = 'filter_year_end_comparar_campeoes')
+
+            df_plot_campeoes = df_completo.loc[df_completo.ano_campeonato.between(filter_year_start_comparar_campeoes, filter_year_end_comparar_campeoes)]
+
+            if choose_campeoes_z4 == 'Campeões':
+                df_plot_campeoes = df_plot_campeoes.loc[df_plot_campeoes.classificacao_final == 1]
+            
+            else:# choose_campeoes_z4 == 'z4'
+                df_plot_campeoes = df_plot_campeoes.loc[df_plot_campeoes.classificacao_final == 17]
+
+            #choose metrica
+            choose_metric_comparar_campeoes = c3.selectbox('Escolher a métrica ', ['pontos_acum','vitorias_acum','empates_acum','derrotas_acum','gols_pro_acum','gols_contra_acum','saldo_gols_acum'], key = 'choose_metric_comparar_campeoes')
+            
+            #choose time para comparar
+            filter_year_time = c2.number_input('Ano:', min_value = df_completo.ano_campeonato.min(),
+                                    max_value = df_completo.ano_campeonato.max(), step = 1, value = df_completo.ano_campeonato.max())
+
+            df_plot_time = df_completo.loc[df_completo.ano_campeonato == filter_year_time]
+            filter_time_comparacao = c1.selectbox('Escolher time para comparação', np.sort(df_plot_time.time.unique()))
+            df_plot_time = df_plot_time.loc[df_plot_time.time == filter_time_comparacao]
+
+            #plot
+            plt.figure(figsize = (20,7))
+            fig = px.line(df_plot_campeoes, x='rodada', 
+                          y=choose_metric_comparar_campeoes, 
+                          color_discrete_sequence=['grey'], 
+                          line_shape='linear',
+                          color = 'ano_campeonato', 
+                          title = f'Brasileirão {filter_year_start_comparar_campeoes} a {filter_year_end_comparar_campeoes} | Time(s): {choose_campeoes_z4} | Métrica: {choose_metric_comparar_campeoes}', 
+                          hover_name = 'time', 
+                          hover_data=['ano_campeonato','time'])
+            
+
+            fig.add_scatter(x=df_plot_time['rodada'], y=df_plot_time[choose_metric_comparar_campeoes], mode='lines', line=dict(color='orange', width=2))
+            fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
+            fig.update_traces(opacity=0.5, selector=dict(name='grey'))
+            fig.update_layout(showlegend=False)
+            st.plotly_chart(fig)
+
+            # if st.toggle('Mostrar tabela '):
+            #     st.markdown(, df_plot.shape)
+            #     st.table(pd.concat([df_plot_campeoes, df_plot_time]).reset_index(drop = True))
 
 
     ########################################################
