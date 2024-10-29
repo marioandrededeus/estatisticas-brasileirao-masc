@@ -31,6 +31,10 @@ def main():
     
     #loading data
     df_completo = pd.read_csv(r'./dados/df_completo.csv', sep = ";")
+    #provisoriamente foi excluido 2006 até que se corrija a base
+    df_completo = df_completo.loc[df_completo.ano_campeonato > 2006]
+    df_completo.dropna(inplace = True)
+    # df_completo
     df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']] = df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']].astype('int64')
 
     with st.sidebar:
@@ -143,14 +147,18 @@ configuração que se mantém até o ano de 2023.
                     assim como a tabela de jogos e resultados com filtros bem intuitivos.''')
         st.divider()
 
-        c1, _,c2 = st.columns([.2,.1,.7])
+        c1, c2, c3 = st.columns([.15,.15,.7])
         choose_year = c1.number_input('Escolher ano', min_value = int(df_completo.ano_campeonato.min()), max_value = int(df_completo.ano_campeonato.max()), value = df_completo.ano_campeonato.max())
-        c2.title(f'Brasileirão {str(choose_year)}')
-        df_plot = df_completo.loc[(df_completo.ano_campeonato == choose_year) & (df_completo.rodada == 38)].sort_values('classificacao_final').reset_index(drop = True)
+        df_plot = df_completo.loc[(df_completo.ano_campeonato == choose_year)]
+        df_plot = df_plot.loc[(df_plot.rodada == df_plot.rodada.max())].sort_values('pontos_acum', ascending = False).reset_index(drop = True)
+        if df_plot.rodada.max() < 38:
+            c2.metric('Até a rodada:',df_plot.rodada.max())
+        c3.title(f'Brasileirão {str(choose_year)}')
+
 
         #classificacao_final
         with st.expander('Classificação Final Geral', expanded = False):
-            c0, c1, c2, c3, c4, c5, c6, _ = st.columns([.1,.15,.25,.13,.13,.13, .13, .6])
+            c0, c1, c2, c3, c4, c5, c6, _ = st.columns([.15,.15,.25,.13,.13,.13, .13, .6])
 
 
             c0.markdown('Classificação')
