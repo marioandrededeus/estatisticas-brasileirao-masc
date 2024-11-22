@@ -41,7 +41,7 @@ def main():
 
     with st.sidebar:
         st.image('./images/DataIndus_green.png', width = 150)
-        st.markdown('''<b>DataIndus</b> é uma iniciativa criada pelo cientista de dados e engenheiro mecânico Mario de Deus, de São Paulo/SP - Brasil,
+        st.markdown('''<b>DataIndus</b> é uma iniciativa criada pelo cientista de dados Mario de Deus, de São Paulo/SP - Brasil,
 com o objetivo de compartilhamento de conteúdos relacionados a aplicação de análise e ciência de dados, em diferentes tipos de aplicação, 
 porém com ênfase em contextos industriais. 
                     
@@ -93,7 +93,7 @@ Medium: https://medium.com/@mariodedeus.engenharia/brasileir%C3%A3o-sob-um-olhar
     with tab0:
 
         st.markdown('''
-                    O desenvolvimento deste aplicativo web foi motivado pelos resultados do Campeonato Brasileiro de Futebol Masculino 2023, que demonstrou surpresas como: 
+                    O desenvolvimento deste aplicativo web começou lá em 2023, motivado pelos resultados do Campeonato Brasileiro de Futebol Masculino daquele ano, que demonstrou surpresas como: 
 
                     😴 o Botafogo ter feito um primeiro turno histórico e depois ter perdido o título; 
 
@@ -103,8 +103,8 @@ Medium: https://medium.com/@mariodedeus.engenharia/brasileir%C3%A3o-sob-um-olhar
                     
                     Agora o app está atualizado com os resultados de 2024.''')
         
-        st.info('Que tal avaliar a performance dos times, rodada a rodada, e compará-los com os campeões ou z4 dos anos anteriores... Arrisca um palpite sobre quem será o campeão?')
-        st.subheader('Explore todos os menus e tire as suas próprias conclusões !')
+        st.warning('''Que tal avaliar a performance dos times, rodada a rodada, e compará-los com os campeões ou z4 dos anos anteriores...\n 
+                Arrisca um palpite sobre quem será o campeão?\n Na aba "Projeções" foi desenvolvido um método para determinar os times com maiores chances.\n No entanto, o método é meramente didático e NÃO deve, em hipótese alguma, ser utilizado como referência para qualquer tipo de aposta.''')
         st.divider()
 
         st.markdown('''<i> Notas: 
@@ -565,6 +565,15 @@ configuração que se mantém até o ano de 2023.
     ########################################################
     with tab7:
 
+        st.markdown('''
+                Conforme observado na aba "Evolução por rodada / Por anos", a curva de pontos acumulados do time campeão pode variar significativamente, 
+                haja a vista que em 2009 o Flamengo foi campeão com apenas **67 pontos** e em 2019, o mesmo Flamengo, foi campeão com incríveis **90 pontos**.\n
+
+                Desta maneira, qualquer tipo de análise de série temporal ou machine learning ficaria prejudicada pelas diferenças de padrão de um ano para outro.
+                No entanto, aqui está um método no mínimo criativo para identificar os times com maiores chances de ser o campeão:
+                1. Primeiro foi identificada a pontuação do líder a cada rodada, em cada ano, e às curvas geradas foi dado o nome de "curva da posição 1".
+                ''')
+
         with st.expander('Curva da posição 1 de cada ano_campeonato', expanded= False):
             df_pos1 = df_completo.groupby(['ano_campeonato','rodada'])['pontos_acum'].max().reset_index()
             df_pos1 = df_pos1.pivot(index='rodada', columns='ano_campeonato', values='pontos_acum').reset_index()
@@ -574,6 +583,11 @@ configuração que se mantém até o ano de 2023.
             fig = px.line(df_pos1, x ='rodada', y = df_pos1.iloc[:,1:].columns, title = f'Brasileirão 2006 - 2024 | Pontos do 1o. colocado a cada rodada')
             fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
             st.plotly_chart(fig)
+
+        st.markdown('''
+                2. Depois foram comparadas as "curvas da posição 1" de cada ano com a curva do ano de 2024, com o objetivo de identificar o ano com comportamento mais similar ao de 2024.
+                3. Para calcular tal similaridade, foram testados 2 métodos: "similaridade de cosseno" e "raiz do erro quadrático médio (RMSE). O método com melhores resultados foi o RMSE.
+                ''')
 
         with st.expander('Similaridades entre curvas da posição 1', expanded = False):
 
@@ -636,6 +650,13 @@ configuração que se mantém até o ano de 2023.
             fig, df_rmse_sim, ano_min_rmse_sim, min_rmse = identificar_curva_pos1_menor_rmse(ano_analisado = ano_analisado, rodada_max = rodada_max)
             c1.plotly_chart(fig)
             c2.dataframe(df_rmse_sim.round(3))
+
+        st.markdown('''
+                4. Uma vez identificado o ano mais similar, foi possível estimar o número de pontos a serem atingidos pelo campeão de 2024, claro que com uma margem de erro.
+                5. Também foram comparadas as curvas de cada time em 2024 com a curva do ano similar, com o objetivo de identificar o time com performance mais próxima ao do campeão do ano em questão. 
+                6. Nesta etapa, verificou-se que times com bom desempenho no 1o turno e baixo desempenho no 2o, ou ao contrário, levavam a RMSE similares, porém intuitivamente pressupõe-se que o desempenho na reta final 
+                    seja mais importante que no início, e assim foi atribuido um peso maior ao RMSE obtido no 2o turno.
+                7. Com base neste critério, foi calculado o RMSE "ponderado" da curva de cada time em relação a curva do ano similar, sendo os times rankeados do menor para maior (quanto menor o RMSE, maior a chance do time sagrar-se campeão.''')
 
         with st.expander('Times mais similares à curva da posição 1', expanded  = False):
             
@@ -715,6 +736,8 @@ configuração que se mantém até o ano de 2023.
             c3.title(' ')
             c3.info('Prováveis G4:')
             c3.dataframe(df_times_rmse_sim.iloc[1:5, :]['time'])
+
+        st.subheader('O método aqui proposto possui única e exclusivamente o objetivo de demonstrar didaticamente a importância da etapa de modelagem e da engenharia de variáveis em um projeto de análise / ciência de dados, e assim, NÃO deve, em hipótese alguma, ser utilizado como referência para qualquer tipo de aposta.')
 
 if __name__ == '__main__':
         main()
