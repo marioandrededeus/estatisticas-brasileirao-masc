@@ -9,6 +9,9 @@ import plotly.figure_factory as ff
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import os
+from sklearn.metrics import mean_squared_error as mse
+from sklearn.metrics import root_mean_squared_error as rmse
+
 
 from plotly.offline import init_notebook_mode
 init_notebook_mode(connected=True)
@@ -32,7 +35,7 @@ def main():
     #loading data
     df_completo = pd.read_csv(r'./dados/df_completo.csv', sep = ";")
     #provisoriamente foi excluido 2006 até que se corrija a base
-    df_completo = df_completo.loc[df_completo.ano_campeonato > 2006]
+    df_completo = df_completo.loc[df_completo.ano_campeonato >= 2006]
     df_completo.dropna(inplace = True)
     # df_completo
     df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']] = df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']].astype('int64')
@@ -76,14 +79,15 @@ Medium: https://medium.com/@mariodedeus.engenharia/brasileir%C3%A3o-sob-um-olhar
     c2.markdown(f"<h1 style='text-align: left;'>Brasileirões</h1> <h5 style='text-align: left;'>Sob um olhar estatístico</h5>", unsafe_allow_html=True)
     c3.image('./images/DataIndus_green.png', width = 90)
 
-    tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
                                         'Home',
                                         'Lista de campeões', 
                                         'Estatísticas por ano', 
                                         'Evolução por rodada', 
                                         'Comparativos', 
                                         'Distribuições estatísticas',
-                                        'Turno 1 vs Campeões'])
+                                        'Turno 1 vs Campeões',
+                                        'Projeções'])
     
     ########################################################
     ########################################################
@@ -150,9 +154,10 @@ configuração que se mantém até o ano de 2023.
         c1, c2, c3 = st.columns([.15,.15,.7])
         choose_year = c1.number_input('Escolher ano', min_value = int(df_completo.ano_campeonato.min()), max_value = int(df_completo.ano_campeonato.max()), value = df_completo.ano_campeonato.max())
         df_plot = df_completo.loc[(df_completo.ano_campeonato == choose_year)]
-        df_plot = df_plot.loc[(df_plot.rodada == df_plot.rodada.max())].sort_values('pontos_acum', ascending = False).reset_index(drop = True)
-        if df_plot.rodada.max() < 38:
-            c2.metric('Até a rodada:',df_plot.rodada.max())
+        rodada_max = df_plot.rodada.max() if (df_plot.gols_pro.count() / df_plot.rodada.max() == 20) else (df_plot.rodada.max() - 1)
+        df_plot = df_plot.loc[(df_plot.rodada == rodada_max)].sort_values('pontos_acum', ascending = False).reset_index(drop = True)
+        if rodada_max < 38:
+            c2.metric('Até a rodada:', rodada_max)
         c3.title(f'Brasileirão {str(choose_year)}')
 
 
@@ -187,22 +192,26 @@ configuração que se mantém até o ano de 2023.
         #tabela de jogos
         with st.expander('Tabela de jogos', expanded = False):
             df_plot = df_completo.loc[df_completo.ano_campeonato == choose_year].sort_values(['rodada','classificacao_final']).reset_index(drop = True)
-            df_tabela_jogos = df_plot[['rodada', 'time', 'adversário', 'gols_pro', 'gols_contra', 'classificacao_1o_turno','classificacao_final']].copy()
+            df_tabela_jogos = df_plot[['rodada', 'time', 'adversário', 'pontos_acum','gols_pro', 'gols_contra', 'classificacao_1o_turno','classificacao_final']].copy()
 
-            choose_times = st.radio('Escolher times', ['Todos', 'Campeão', 'Campeão 1o_turno', 'G4', 'Rebaixados', 'Selecionar'], horizontal = True)
-            if choose_times == 'Campeão':
+            if rodada_max == 38:
+                choose_times = st.radio('Escolher times', ['Todos', 'Campeão', 'Campeão 1o_turno', 'G4', 'Z4', 'Selecionar'], horizontal = True)
+            else:
+                choose_times = st.radio('Escolher times', ['Todos', '1o colocado', 'Campeão 1o_turno', 'G4', 'Z4', 'Selecionar'], horizontal = True)
+
+            if choose_times == 'Campeão' or choose_times == '1o colocado':
                 df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_final == 1]
             elif choose_times == 'Campeão 1o_turno':
                 df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_1o_turno == 1]
             elif choose_times == 'G4':
                 df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_final <= 4]
-            elif choose_times == 'Rebaixados':
+            elif choose_times == 'Z4':
                 df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.classificacao_final >= 17]
             elif choose_times == 'Selecionar':
                 list_times = st.multiselect('Selecionar times', df_tabela_jogos.time.unique(), default = df_tabela_jogos.time.unique()[0])
                 df_tabela_jogos = df_tabela_jogos.loc[df_tabela_jogos.time.isin(list_times)]
 
-            st.table(df_tabela_jogos[['rodada', 'time', 'adversário', 'gols_pro', 'gols_contra', 'classificacao_final']].reset_index(drop = True))
+            st.dataframe(df_tabela_jogos)
 
     ########################################################
     ########################################################
@@ -218,20 +227,26 @@ configuração que se mantém até o ano de 2023.
         with st.expander('Por times', expanded = False):
             c1, c2, c3 = st.columns([.35,.3,.35])
             choose_year = c1.number_input('Escolher ano ', min_value = int(df_completo.ano_campeonato.min()), max_value = int(df_completo.ano_campeonato.max()), value = df_completo.ano_campeonato.max())
-            choose_metric = c1.selectbox('Escolher a métrica', ['pontos_acum','vitorias_acum','empates_acum','derrotas_acum','gols_pro_acum','gols_contra_acum','saldo_gols_acum'])
-            choose_times = c2.radio('Escolher times ', ['Todos', 'Campeão','Campeão 1o_turno','G4', 'Rebaixados', 'Selecionar'], horizontal=False)
-            
             df_plot = df_completo.loc[df_completo.ano_campeonato == choose_year]
 
-            if choose_times == 'Campeão':
+            rodada_max = df_plot.rodada.max() if (df_plot.gols_pro.count() / df_plot.rodada.max() == 20) else (df_plot.rodada.max() - 1)
+
+            if rodada_max == 38:
+                choose_times_evolucao = st.radio('Escolher times', ['Todos', 'Campeão', 'Campeão 1o_turno', 'G4', 'Z4', 'Selecionar'], horizontal = True, key = 'choose_times_evolucao')
+            else:
+                choose_times_evolucao = st.radio('Escolher times', ['Todos', '1o colocado', 'Campeão 1o_turno', 'G4', 'Z4', 'Selecionar'], horizontal = True, key = 'choose_times_evolucao')
+            
+            choose_metric = c1.selectbox('Escolher a métrica', ['pontos_acum','vitorias_acum','empates_acum','derrotas_acum','gols_pro_acum','gols_contra_acum','saldo_gols_acum'])
+
+            if choose_times_evolucao == 'Campeão' or choose_times_evolucao == '1o colocado':
                 df_plot = df_plot.loc[df_completo.classificacao_final == 1]
-            elif choose_times == 'Campeão 1o_turno':
+            elif choose_times_evolucao == 'Campeão 1o_turno':
                 df_plot = df_plot.loc[df_completo.classificacao_1o_turno == 1]
-            elif choose_times == 'G4':
+            elif choose_times_evolucao == 'G4':
                 df_plot = df_plot.loc[df_completo.classificacao_final <= 4]
-            elif choose_times == 'Rebaixados':
+            elif choose_times_evolucao == 'Z4':
                 df_plot = df_plot.loc[df_completo.classificacao_final >= 17]
-            elif choose_times == 'Selecionar':
+            elif choose_times_evolucao == 'Selecionar':
                 list_times = c3.multiselect('Selecionar times', df_completo.time.unique(), default = df_completo.time.unique()[0])
                 df_plot = df_plot.loc[df_completo.time.isin(list_times)]
             else:
@@ -239,7 +254,7 @@ configuração que se mantém até o ano de 2023.
 
             #plot
             plt.figure(figsize = (20,7))
-            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'time', title = f'Brasileirão {choose_year} | Time(s): {choose_times if choose_times != "Selecionar" else list_times} | Métrica: {choose_metric}', hover_data=['adversário','classificacao_1o_turno','classificacao_final'])
+            fig = px.line(df_plot, x ='rodada', y = choose_metric, color = 'time', title = f'Brasileirão {choose_year} | Time(s): {choose_times_evolucao if choose_times_evolucao != "Selecionar" else list_times} | Métrica: {choose_metric}', hover_data=['adversário','classificacao_1o_turno','classificacao_final'])
             fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
             st.plotly_chart(fig)
 
@@ -342,13 +357,13 @@ configuração que se mantém até o ano de 2023.
         st.subheader('Comparativos por ano e time')
         st.markdown('''Compare dois anos distintos, rodada a rodada, sob a ótica da métrica que desejar: 
                     pontos, vitórias, saldo de gols entre outras.
-                    Também é possível filtrar apenas os campeões, G4, Rebaixados ou escolher os times um a um.''')
+                    Também é possível filtrar apenas os campeões, G4, Z4 ou escolher os times um a um.''')
         st.divider() 
 
         #Comparativo entre todos os times por temporada        
         c1, c2 = st.columns([.3,.7])
         choose_metric = c1.selectbox('Escolher a métrica  ', ['pontos_acum','vitorias_acum','empates_acum','derrotas_acum','gols_pro_acum','gols_contra_acum','saldo_gols_acum'])
-        choose_times = c2.radio(' Escolher times', ['Todos','Campeões','Campeões 1o_turno','G4', 'Rebaixados', 'Selecionar'], horizontal = True)
+        choose_times = c2.radio(' Escolher times', ['Todos','Campeões','Campeões 1o_turno','G4', 'Z4', 'Selecionar'], horizontal = True)
 
         c1, c2, c3 = st.columns([.4,.4,.2])
         filtro_ano1 = c1.number_input('Ano 1', value = df_completo.ano_campeonato.unique()[-2], 
@@ -365,7 +380,7 @@ configuração que se mantém até o ano de 2023.
             df_plot = df_plot.loc[df_plot.classificacao_1o_turno == 1]
         elif choose_times == 'G4':
             df_plot = df_plot.loc[df_plot.classificacao_final <= 4]
-        elif choose_times == 'Rebaixados':
+        elif choose_times == 'Z4':
             df_plot = df_plot.loc[df_plot.classificacao_final >= 17]
         elif choose_times == 'Selecionar':
             chosen_time = c3.selectbox('Selecionar time', df_plot.time.unique())
@@ -410,13 +425,13 @@ configuração que se mantém até o ano de 2023.
         
         order_year_by = c1.radio('Ordernar por', ('Ano', 'Desvio Padrão'))
         choose_metric = c2.selectbox('Escolher a métrica   ', ['pontos_acum','vitorias_acum','empates_acum','derrotas_acum','gols_pro_acum','gols_contra_acum','saldo_gols_acum'])
-        choose_times = c3.radio(' Escolher times ', ['Todos', 'G4', 'G6', 'Rebaixados'])
+        choose_times = c3.radio(' Escolher times ', ['Todos', 'G4', 'G6', 'Z4'])
 
         if choose_times == 'G4':
             df_plot = df_plot.loc[df_plot.classificacao_final <= 4]
         elif choose_times == 'G6':
             df_plot = df_plot.loc[df_plot.classificacao_final <= 6]
-        elif choose_times == 'Rebaixados':
+        elif choose_times == 'Z4':
             df_plot = df_plot.loc[df_plot.classificacao_final >= 17]
 
         #desvio padrao
@@ -498,6 +513,7 @@ configuração que se mantém até o ano de 2023.
         node = dict(label = label, pad = 35, thickness = 10)
         data = go.Sankey(link = link, node = node, orientation = 'h')
 
+        c1.info('Qual foi a classificação final dos times que completaram o 1o turno na 1a. colocação?')
         fig = go.Figure(data)
         fig.update_layout(
             hovermode = 'x',
@@ -506,7 +522,7 @@ configuração que se mantém até o ano de 2023.
             width = 500,
         )
         c1.plotly_chart(fig)
-
+        
         ###################################################
         #classificação turno1 para campeões
         df_plot = df_completo.groupby(['ano_campeonato','time'])[['classificacao_1o_turno','classificacao_final']].max().reset_index()
@@ -536,6 +552,7 @@ configuração que se mantém até o ano de 2023.
         node = dict(label = label, pad = 35, thickness = 10)
         data = go.Sankey(link = link, node = node, orientation = 'h')
 
+        c2.info('Em qual posição, os times campeões, haviam completado o 1o turno?')
         fig = go.Figure(data)
         fig.update_layout(
             hovermode = 'x',
@@ -544,6 +561,161 @@ configuração que se mantém até o ano de 2023.
             width = 500,
             )
         c2.plotly_chart(fig)
+
+    ########################################################
+    ########################################################
+    with tab7:
+
+        with st.expander('Curva da posição 1 de cada ano_campeonato', expanded= False):
+            df_pos1 = df_completo.groupby(['ano_campeonato','rodada'])['pontos_acum'].max().reset_index()
+            df_pos1 = df_pos1.pivot(index='rodada', columns='ano_campeonato', values='pontos_acum').reset_index()
+            df_pos1.index.name = None
+
+            plt.figure(figsize = (20,7))
+            fig = px.line(df_pos1, x ='rodada', y = df_pos1.iloc[:,1:].columns, title = f'Brasileirão 2006 - 2024 | Pontos do 1o. colocado a cada rodada')
+            fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
+            st.plotly_chart(fig)
+
+        with st.expander('Similaridades entre curvas da posição 1', expanded = False):
+
+            c1, c2, _ = st.columns([.25,.25, .50])
+            ano_analisado = 2024
+            c1.metric('Ano a ser analisado', ano_analisado)
+            df_plot = df_completo.loc[(df_completo.ano_campeonato == ano_analisado)]
+
+            rodada_max = df_plot.rodada.max() if (df_plot.gols_pro.count() / df_plot.rodada.max() == 20) else (df_plot.rodada.max() - 1)
+            rodada_max = c2.number_input('Até a rodada', value = rodada_max, max_value=rodada_max, min_value=19)
+
+            #####################
+            def identificar_curva_pos1_menor_rmse(ano_analisado: int, rodada_max: int):
+                '''
+                Função para identificar o ano cuja curva da posição #1 de cada rodada apresenta maior similaridade com a curva do ano + rodada escolhidos
+
+                ARGS
+                ano_analisado: ano em estudo para realizar a projeção
+                rodada_max: ou a última rodada realizada ou rodada anteriores para avaliar o algoritmo
+                '''
+
+                df_pos1_rodada_max_atual = df_pos1.loc[df_pos1.rodada <= rodada_max]
+                df_pos1_rodada_max_atual.index.name = None
+                df_pos1_rodada_max_atual.columns.name = None
+                list_cols = df_pos1_rodada_max_atual.columns.tolist()
+
+                if rodada_max <= 19:
+                    list_rmse = []
+                    for col in list_cols:
+                        rmse_col = rmse(df_pos1_rodada_max_atual[ano_analisado], df_pos1_rodada_max_atual[col])
+                        list_rmse.append(rmse_col)
+
+                else: #rodada > 19
+                    df_turno1 = df_pos1_rodada_max_atual.loc[df_pos1_rodada_max_atual.rodada <= 19]
+                    df_turno2 = df_pos1_rodada_max_atual.loc[df_pos1_rodada_max_atual.rodada > 19]
+
+                    list_rmse = []
+                    for col in list_cols:
+                        rmse_col_t1 = rmse(df_turno1[ano_analisado], df_turno1[col])
+                        rmse_col_t2 = rmse(df_turno2[ano_analisado], df_turno2[col])
+                        rmse_col = (rmse_col_t1 + (3*rmse_col_t2))/4
+                        list_rmse.append(rmse_col)
+
+                df_rmse_sim = pd.DataFrame({'ano_campeonato':list_cols, f'rmse_{ano_analisado}':list_rmse})
+                df_rmse_sim = df_rmse_sim.sort_values(df_rmse_sim.columns[-1]).reset_index(drop = True)
+
+                #ano com maior similaridade por RMSE com o ano analisado
+                ano_min_rmse_sim = df_rmse_sim.ano_campeonato.iloc[1]
+                min_rmse = df_rmse_sim.iloc[1,1]
+                print(f'{"#"*50}\nANO: {ano_analisado} | RODADA: {rodada_max} | Maior Similaridade com pos#1 de {ano_min_rmse_sim}\n{"#"*50}')
+                #######################################
+
+                plt.figure(figsize = (20,7))
+                fig = px.line(df_pos1_rodada_max_atual, x ='rodada', y = [int(ano_min_rmse_sim), int(ano_analisado)], title = f'Brasileirão | Ano analisado: {ano_analisado} | Até a rodada: {rodada_max} | Turno 2: Peso 3 <br>Curva pos.1 com maior similaridade por RMSE: Ano {ano_min_rmse_sim} | RMSE {np.round(min_rmse, 4)}</br>')
+                fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
+
+                return fig, df_rmse_sim, ano_min_rmse_sim, min_rmse
+            
+            c1, c2 = st.columns([.75, .25])
+            fig, df_rmse_sim, ano_min_rmse_sim, min_rmse = identificar_curva_pos1_menor_rmse(ano_analisado = ano_analisado, rodada_max = rodada_max)
+            c1.plotly_chart(fig)
+            c2.dataframe(df_rmse_sim.round(3))
+
+        with st.expander('Times mais similares à curva da posição 1', expanded  = False):
+            
+            #####################
+            def identificar_g4_menor_rmse(ano_analisado: int, rodada_max: int, ano_min_rmse_sim: int):
+                    
+                '''
+                Função para identificar os times g4 com menor RMSE em relação a curva pos.1 do ano mais similar ao ano escolhido
+
+                ARGS
+                ano_analisado: ano em estudo para realizar a projeção
+                rodada_max: ou a última rodada realizada ou rodada anteriores para avaliar o algoritmo
+                ano_min_rmse_sim: ano cuja curva pos.1 apresenta maior similaridade com o ano escolhido (esta variável é a saída da função "identificar_curva_pos1_menor_rmse")
+                '''
+
+                # Análise dos times do ano selecionado em comparação ao ano com maior similaridade
+                df_times_ano_analisado = df_completo.loc[(df_completo.ano_campeonato == ano_analisado) & (df_completo.rodada <= rodada_max)][['time', 'rodada','pontos_acum']]
+                df_times_ano_analisado = df_times_ano_analisado.pivot(index = 'rodada', columns = 'time', values = 'pontos_acum').reset_index()
+
+                #adicionando a coluna do ano com maior similaridade
+                df_pos1_rodada_max_atual = df_pos1.loc[df_pos1.rodada <= rodada_max]
+                df_pos1_rodada_max_atual.index.name = None
+                df_pos1_rodada_max_atual.columns.name = None
+                # list_cols = df_pos1_rodada_max_atual.columns.tolist()
+
+                #filtrando o dataframe até a rodada selecionada
+                df_times_ano_analisado[ano_min_rmse_sim] = df_pos1_rodada_max_atual[ano_min_rmse_sim]
+                df_times_ano_analisado.dropna(inplace = True)
+
+                ###########################################################################################################################################
+
+                #calculando o RMSE de cada time do ano escolhido com a curva pos.1 do ano com maior similaridade com o ano escolhido
+
+                # Calculando o RMSE
+                list_times = df_times_ano_analisado.columns.tolist()
+                list_rmse = []
+
+                if rodada_max <= 19:
+                    for time in list_times:
+                        rmse_col = rmse(df_times_ano_analisado[time], df_times_ano_analisado[ano_min_rmse_sim])
+                        list_rmse.append(rmse_col)
+
+                else:
+                    df_times_ano_analisado = df_times_ano_analisado.reset_index()
+                    df_turno1 = df_times_ano_analisado.loc[df_times_ano_analisado.rodada <= 19]
+                    df_turno2 = df_times_ano_analisado.loc[(df_times_ano_analisado.rodada > 19) & (df_times_ano_analisado.rodada <= rodada_max)]
+                    for time in list_times:
+                        rmse_col_t1 = rmse(df_turno1[time], df_turno1[ano_min_rmse_sim])
+                        rmse_col_t2 = rmse(df_turno2[time], df_turno2[ano_min_rmse_sim])
+                        rmse_col = (rmse_col_t1 + (3*rmse_col_t2))/4
+                        list_rmse.append(rmse_col)
+                        # print(time, rmse_col_t1, rmse_col_t2, rmse_col)
+
+                df_times_rmse_sim = pd.DataFrame({'time':list_times, f'rmse_{int(ano_analisado)}_{int(ano_min_rmse_sim)}':list_rmse})
+                df_times_rmse_sim = df_times_rmse_sim.sort_values(df_times_rmse_sim.columns[-1]).reset_index(drop = True)
+
+                # # #######################################
+                #Plot top 4 mais similares com a curva pos#1 do ano referencia
+                list_top_4_similaridade = df_times_rmse_sim['time'][:5].tolist()
+
+                plt.figure(figsize = (20,7))
+                fig = px.line(df_times_ano_analisado[list_top_4_similaridade], 
+                            # title = f'Top 4 times de {ano_analisado} com maior similaridade por RMSE com a curva pos.1 de {ano_min_rmse_sim}</sup>')
+                            title =f'Brasileirão | Ano analisado: {ano_analisado} | Até a rodada: {rodada_max} | Turno 2: Peso 3 | <br><sup>Top 4 times de {ano_analisado} com maior similaridade por menor RMSE com a curva pos.1 de {ano_min_rmse_sim}</sup></br>')
+                fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
+                fig.update_xaxes(ticktext=np.arange(1,33))
+                
+                return df_times_rmse_sim, fig
+            c1, _ = st.columns([.25,.75])
+            pontuacao_campeao = df_completo.loc[df_completo.ano_campeonato == ano_min_rmse_sim]['pontos_acum'].max()
+
+            c1, c2, c3 = st.columns([.65,.2,.15], gap='medium')
+            df_times_rmse_sim, fig = identificar_g4_menor_rmse(ano_analisado = ano_analisado, rodada_max = rodada_max, ano_min_rmse_sim = ano_min_rmse_sim)
+            c1.plotly_chart(fig)
+            c2.title(' ')
+            c2.metric('Provável Pontuação do Campeão', int(pontuacao_campeao))
+            c3.title(' ')
+            c3.info('Prováveis G4:')
+            c3.dataframe(df_times_rmse_sim.iloc[1:5, :]['time'])
 
 if __name__ == '__main__':
         main()
