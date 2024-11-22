@@ -9,7 +9,6 @@ import plotly.figure_factory as ff
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import os
-from sklearn.metrics import mean_squared_error as mse
 from sklearn.metrics import root_mean_squared_error as rmse
 
 
