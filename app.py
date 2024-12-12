@@ -137,10 +137,10 @@ configuração que se mantém até o ano de 2023.
             c0, c1, c2, c3, c4, c5 = st.columns([.15,.33,.13,.13,.13,.13])
             c0.image(f'./images/escudos/{campeao}.png', width = 50)
             c1.metric(str(ano), campeao)
-            c2.metric('Pontos', pontos_campeao)
-            c3.metric('Vitórias', vitorias_campeao)
-            c4.metric('Saldo de gols', saldo_gols_campeao)
-            c5.metric('Gols pro', gols_pro_campeao)
+            c2.metric('Pontos', int(pontos_campeao))
+            c3.metric('Vitórias', int(vitorias_campeao))
+            c4.metric('Saldo de gols', int(saldo_gols_campeao))
+            c5.metric('Gols pro', int(gols_pro_campeao))
             st.divider()
 
     ########################################################
@@ -155,7 +155,7 @@ configuração que se mantém até o ano de 2023.
         choose_year = c1.number_input('Escolher ano', min_value = int(df_completo.ano_campeonato.min()), max_value = int(df_completo.ano_campeonato.max()), value = df_completo.ano_campeonato.max())
         df_plot = df_completo.loc[(df_completo.ano_campeonato == choose_year)]
         rodada_max = df_plot.rodada.max() if (df_plot.gols_pro.count() / df_plot.rodada.max() == 20) else (df_plot.rodada.max() - 1)
-        df_plot = df_plot.loc[(df_plot.rodada == rodada_max)].sort_values('pontos_acum', ascending = False).reset_index(drop = True)
+        df_plot = df_plot.loc[(df_plot.rodada == rodada_max)].sort_values(['pontos_acum','vitorias_acum'], ascending = False).reset_index(drop = True)
         if rodada_max < 38:
             c2.metric('Até a rodada:', rodada_max)
         c3.title(f'Brasileirão {str(choose_year)}')
@@ -165,7 +165,6 @@ configuração que se mantém até o ano de 2023.
         with st.expander('Classificação Final Geral', expanded = False):
         ######################################
             c0, c1, c2, c3, c4, c5, c6, _ = st.columns([.15,.15,.25,.13,.13,.13, .13, .6])
-
 
             c0.markdown('Classificação')
             c1.markdown('Escudo')
@@ -185,10 +184,10 @@ configuração que se mantém até o ano de 2023.
                     c1.info(df_plot.time[i])
                 
                 c2.subheader(df_plot.time[i])
-                c3.markdown(df_plot.pontos_acum[i])
-                c4.markdown(df_plot.vitorias_acum[i])
-                c5.markdown(df_plot.saldo_gols_acum[i])
-                c6.markdown(df_plot.gols_pro_acum[i])
+                c3.markdown(int(df_plot.pontos_acum[i].round()))
+                c4.markdown(int(df_plot.vitorias_acum[i].round()))
+                c5.markdown(int(df_plot.saldo_gols_acum[i].round()))
+                c6.markdown(int(df_plot.gols_pro_acum[i].round()))
 
         ######################################
         #tabela de jogos
@@ -390,8 +389,8 @@ configuração que se mantém até o ano de 2023.
         elif choose_times == 'Z4':
             df_plot = df_plot.loc[df_plot.classificacao_final >= 17]
         elif choose_times == 'Selecionar':
-            chosen_time = c3.selectbox('Selecionar time', df_plot.time.unique())
-            df_plot = df_plot.loc[df_plot.time == chosen_time]
+            chosen_time = c3.multiselect('Selecionar time', df_plot.time.unique())
+            df_plot = df_plot.loc[df_plot.time.isin(chosen_time)]
 
         plt.figure(figsize = (30,7))
         fig = px.line(  df_plot, x ='rodada', 
