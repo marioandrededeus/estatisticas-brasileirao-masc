@@ -795,9 +795,9 @@ configuração que se mantém até o ano de 2023.
             campeao_ano_analisado = df_campeao_ano_analisado.loc[indice_max, 'time']
             pontuacao_campeao_ano_analisado = df_campeao_ano_analisado.loc[df_campeao_ano_analisado.ano_campeonato == ano_analisado]['pontos_acum'].max()
 
-            c1, c2 = st.columns(2)
-            c1.metric(f'**Real campeão {ano_analisado}**', campeao_ano_analisado)
-            c2.metric('**Real pontuação**', int(pontuacao_campeao_ano_analisado))
+            # c1, c2 = st.columns(2)
+            # c1.metric(f'**Real campeão {ano_analisado}**', campeao_ano_analisado)
+            # c2.metric('**Real pontuação**', int(pontuacao_campeao_ano_analisado))
 
         st.error('O método aqui proposto possui única e exclusivamente o objetivo de demonstrar didaticamente a importância da etapa de modelagem e da engenharia de variáveis em um projeto de análise / ciência de dados, e assim, NÃO deve, em hipótese alguma, ser utilizado como referência para qualquer tipo de aposta.')
 
