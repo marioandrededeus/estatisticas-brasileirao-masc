@@ -22,20 +22,22 @@ st.set_page_config(
 	page_icon = 'images/logo_brasileirao.png',
 	layout = 'wide',
 	initial_sidebar_state='collapsed')
+
 ############################################################################################
 def main():
 ############################################################################################
-    # try:
-    #     os.chdir(r'C:\Users\m4005001\OneDrive - Saint-Gobain\Pessoal\Estatisticas_Brasileirao\estatisticas-brasileirao-masc')
-    # except:
-    #     pass
+    try:
+        os.chdir(r'C:\Users\m4005001\OneDrive - Saint-Gobain\Pessoal\Estatisticas_Brasileirao\estatisticas-brasileirao-masc')
+    except:
+        pass
     
     #loading data
-    df_completo = pd.read_csv(r'dados/df_completo.csv', sep = ";")
+    df_completo = pd.read_parquet(r'dados/df_completo.parquet')
+
     #provisoriamente foi excluido 2006 até que se corrija a base
     df_completo = df_completo.loc[df_completo.ano_campeonato >= 2006]
-    df_completo.dropna(inplace = True)
-    # df_completo
+    df_completo.dropna(subset = ['gols_pro'], inplace = True)
+
     df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']] = df_completo[['gols_pro', 'gols_contra','gols_pro_acum','gols_contra_acum','saldo_gols_acum']].astype('int64')
 
     with st.sidebar:
@@ -100,7 +102,7 @@ Medium: https://medium.com/@mariodedeus.engenharia/brasileir%C3%A3o-sob-um-olhar
 
                     😪 a pontuação do rebaixamento ter sido maior que a média dos demais anos;
                     
-                    Agora o app está atualizado com os resultados de 2024.''')
+                    Agora o app está atualizado com os resultados de 2025.''')
         
         st.warning('''  Que tal avaliar a performance dos times, rodada a rodada, e compará-los com os campeões ou z4 dos anos anteriores?
                         \nNa aba "Projeções" foi desenvolvido um método para determinar os times com maiores chances.
@@ -113,8 +115,8 @@ Medium: https://medium.com/@mariodedeus.engenharia/brasileir%C3%A3o-sob-um-olhar
 1. Os dados utilizados referem-se aos campeonatos brasileiros de futebol masculino desde o ano 2006. Apesar da era dos pontos corridos ter iniciado em 2003, foi a partir de 2006 que o campeonato passou a contar com 20 times, 
 configuração que se mantém até o ano de 2023.
 2. Fontes utilizadas para o download dos dados brutos:
-    * 2006 a 2024 (até rodada 25): https://basedosdados.org/dataset/c861330e-bca2-474d-9073-bc70744a1b23?table=18835b0d-233e-4857-b454-1fa34a81b4fa
-    * 2024 (rodada 26 a 38): https://ge.globo.com/futebol/brasileirao-serie-a/''', unsafe_allow_html=True)
+    * 2006 a 2023: https://basedosdados.org/dataset/c861330e-bca2-474d-9073-bc70744a1b23?table=18835b0d-233e-4857-b454-1fa34a81b4fa
+    * 2024 a 2025: https://ge.globo.com/futebol/brasileirao-serie-a/''', unsafe_allow_html=True)
 
     ########################################################
     ########################################################
@@ -150,34 +152,40 @@ configuração que se mantém até o ano de 2023.
         st.markdown('''Selecione um ano entre 2006 e 2023 e visualize a classificação final dos 20 times daquela temporada, 
                     assim como a tabela de jogos e resultados com filtros bem intuitivos.''')
         st.divider()
-
+        
         c1, c2, c3 = st.columns([.15,.15,.7])
         choose_year = c1.number_input('Escolher ano', min_value = int(df_completo.ano_campeonato.min()), max_value = int(df_completo.ano_campeonato.max()), value = df_completo.ano_campeonato.max())
         df_plot = df_completo.loc[(df_completo.ano_campeonato == choose_year)]
-        rodada_max = df_plot.rodada.max() if (df_plot.gols_pro.count() / df_plot.rodada.max() == 20) else (df_plot.rodada.max() - 1)
-        df_plot = df_plot.loc[(df_plot.rodada == rodada_max)].sort_values(['pontos_acum','vitorias_acum'], ascending = False).reset_index(drop = True)
+        df_plot = df_plot.sort_values(['jogos_acum'], ascending = False).reset_index(drop = True)
+        df_plot = df_plot.groupby('time').first().reset_index()
+        df_plot = df_plot.sort_values(['pontos_acum','vitorias_acum'], ascending = False).reset_index(drop = True)
+        rodada_max = df_plot.jogos_acum.max()
+        # df_plot = df_plot.loc[(df_plot.rodada == rodada_max)].sort_values(['pontos_acum','vitorias_acum'], ascending = False).reset_index(drop = True)
+        
         if rodada_max < 38:
             c2.metric('Até a rodada:', rodada_max)
         c3.title(f'Brasileirão {str(choose_year)}')
 
         ######################################
-        #classificacao_final
-        with st.expander('Classificação Final Geral', expanded = False):
+        #classificacao_geral
+        with st.expander('Classificação Geral', expanded = False):
         ######################################
-            c0, c1, c2, c3, c4, c5, c6, _ = st.columns([.15,.15,.25,.13,.13,.13, .13, .6])
+            c0, c1, c2, c3, c4, c5, c6, c7 = st.columns([.05,.10,.25,.12,.12,.12,.12,.12])
 
-            c0.markdown('Classificação')
+            c0.markdown('Pos')
             c1.markdown('Escudo')
             c2.markdown('Time')
             c3.markdown('Pontos')
-            c4.markdown('Vitórias')
-            c5.markdown('Saldo de gols')
-            c6.markdown('Gols pró')
+            c4.markdown('Jogos')
+            c5.markdown('Vitórias')
+            c6.markdown('SG')
+            c7.markdown('GP')
             st.divider()
 
             for i in range(20):
-                c0, c1, c2, c3, c4, c5, c6, _ = st.columns([.1,.15,.25,.13,.13,.13, .13, .6])
-                c0.subheader(df_plot.classificacao_final[i])
+                c0, c1, c2, c3, c4, c5, c6, c7 = st.columns([.05,.10,.25,.12,.12,.12,.12,.12])
+                # c0.subheader(df_plot.classificacao_final[i])
+                c0.subheader(i+1)
                 try:
                     c1.image(f'./images/escudos/{df_plot.time[i]}.png', width = 50)
                 except:
@@ -185,9 +193,10 @@ configuração que se mantém até o ano de 2023.
                 
                 c2.subheader(df_plot.time[i])
                 c3.markdown(int(df_plot.pontos_acum[i].round()))
-                c4.markdown(int(df_plot.vitorias_acum[i].round()))
-                c5.markdown(int(df_plot.saldo_gols_acum[i].round()))
-                c6.markdown(int(df_plot.gols_pro_acum[i].round()))
+                c4.markdown(int(df_plot.jogos_acum[i].round()))
+                c5.markdown(int(df_plot.vitorias_acum[i].round()))
+                c6.markdown(int(df_plot.saldo_gols_acum[i].round()))
+                c7.markdown(int(df_plot.gols_pro_acum[i].round()))
 
         ######################################
         #tabela de jogos
@@ -586,7 +595,7 @@ configuração que se mantém até o ano de 2023.
         st.markdown('Escolha um **ano** para analisar e uma **rodada** entre #20 e #37 para gerar predições como se o campeonato ainda estivesse em andamento.')
         #seleção do ano a ser analisado
         c1, c2, _ = st.columns([.35,.35, .3])
-        ano_analisado = c1.number_input('**Ano a ser analisado**', min_value = 2006, max_value = 2024, value = 2024)
+        ano_analisado = c1.number_input('**Ano a ser analisado**', min_value = 2006, max_value = 2025, value = 2025)
         df_plot = df_completo.loc[(df_completo.ano_campeonato == ano_analisado)]
 
         #seleção da rodada máxima para simulação
@@ -631,8 +640,10 @@ configuração que se mantém até o ano de 2023.
                     '''
 
                     df_pos1_rodada_max_atual = df_pos1.loc[df_pos1.rodada <= rodada_max]
+                    df_pos1_rodada_max_atual.dropna(inplace = True)
                     df_pos1_rodada_max_atual.index.name = None
                     df_pos1_rodada_max_atual.columns.name = None
+
                     list_cols = df_pos1_rodada_max_atual.columns.tolist()
 
                     if rodada_max <= 19:
@@ -779,7 +790,9 @@ configuração que se mantém até o ano de 2023.
             
             #real campeao do ano analisado
             df_campeao_ano_analisado = df_completo.loc[df_completo.ano_campeonato == ano_analisado]
-            campeao_ano_analisado = df_campeao_ano_analisado.loc[df_campeao_ano_analisado.classificacao_final == 1]['time'].mode()[0]
+            indice_max = df_campeao_ano_analisado['pontos_acum'].idxmax()
+
+            campeao_ano_analisado = df_campeao_ano_analisado.loc[indice_max, 'time']
             pontuacao_campeao_ano_analisado = df_campeao_ano_analisado.loc[df_campeao_ano_analisado.ano_campeonato == ano_analisado]['pontos_acum'].max()
 
             c1, c2 = st.columns(2)
