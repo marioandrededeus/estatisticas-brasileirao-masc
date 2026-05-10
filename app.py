@@ -595,12 +595,12 @@ configuração que se mantém até o ano de 2023.
         st.markdown('Escolha um **ano** para analisar e uma **rodada** entre #20 e #37 para gerar predições como se o campeonato ainda estivesse em andamento.')
         #seleção do ano a ser analisado
         c1, c2, _ = st.columns([.35,.35, .3])
-        ano_analisado = c1.number_input('**Ano a ser analisado**', min_value = 2006, max_value = 2025, value = 2025)
+        ano_analisado = c1.number_input('**Ano a ser analisado**', min_value = 2006, max_value = df_completo.ano_campeonato.max(), value = 2025)
         df_plot = df_completo.loc[(df_completo.ano_campeonato == ano_analisado)]
 
         #seleção da rodada máxima para simulação
         rodada_max = df_plot.rodada.max() if (df_plot.gols_pro.count() / df_plot.rodada.max() == 20) else (df_plot.rodada.max() - 1)
-        rodada_max = c2.number_input('**Até a rodada**', value = rodada_max, max_value = rodada_max, min_value = 20)
+        rodada_max = c2.number_input('**Até a rodada**', value = rodada_max, max_value = rodada_max, min_value = 10)
         st.divider()
 
         layout1, layout2 = st.columns([.35,.65], gap = 'medium')
@@ -631,50 +631,94 @@ configuração que se mantém até o ano de 2023.
             with st.expander('2 | Similaridades entre curvas da posição 1', expanded = False):
             ######################################
                 def identificar_curva_pos1_menor_rmse(ano_analisado: int, rodada_max: int):
-                    '''
-                    Função para identificar o ano cuja curva da posição #1 de cada rodada apresenta maior similaridade com a curva do ano + rodada escolhidos
+                    """
+                    Identifica o ano cuja curva da posição #1 apresenta maior similaridade
+                    com a curva do ano analisado até a rodada selecionada.
+                    """
 
-                    ARGS
-                    ano_analisado: ano em estudo para realizar a projeção
-                    rodada_max: ou a última rodada realizada ou rodada anteriores para avaliar o algoritmo
-                    '''
-
-                    df_pos1_rodada_max_atual = df_pos1.loc[df_pos1.rodada <= rodada_max]
-                    df_pos1_rodada_max_atual.dropna(inplace = True)
+                    df_pos1_rodada_max_atual = df_pos1.loc[df_pos1.rodada <= rodada_max].copy()
+                    df_pos1_rodada_max_atual = df_pos1_rodada_max_atual.dropna()
                     df_pos1_rodada_max_atual.index.name = None
                     df_pos1_rodada_max_atual.columns.name = None
 
-                    list_cols = df_pos1_rodada_max_atual.columns.tolist()
+                    list_cols = [
+                        col for col in df_pos1_rodada_max_atual.columns
+                        if col != 'rodada'
+                    ]
 
-                    if rodada_max <= 19:
-                        list_rmse = []
-                        for col in list_cols:
-                            rmse_col = rmse(df_pos1_rodada_max_atual[ano_analisado], df_pos1_rodada_max_atual[col])
-                            list_rmse.append(rmse_col)
+                    if ano_analisado not in list_cols:
+                        st.error(f'O ano {ano_analisado} não possui dados suficientes para calcular similaridade.')
+                        st.stop()
 
-                    else: #rodada > 19
-                        df_turno1 = df_pos1_rodada_max_atual.loc[df_pos1_rodada_max_atual.rodada <= 19]
-                        df_turno2 = df_pos1_rodada_max_atual.loc[df_pos1_rodada_max_atual.rodada > 19]
+                    df_turno1 = df_pos1_rodada_max_atual.loc[
+                        df_pos1_rodada_max_atual.rodada <= 19
+                    ]
 
-                        list_rmse = []
-                        for col in list_cols:
-                            rmse_col_t1 = rmse(df_turno1[ano_analisado], df_turno1[col])
-                            rmse_col_t2 = rmse(df_turno2[ano_analisado], df_turno2[col])
-                            rmse_col = (rmse_col_t1 + (3*rmse_col_t2))/4
-                            list_rmse.append(rmse_col)
+                    df_turno2 = df_pos1_rodada_max_atual.loc[
+                        df_pos1_rodada_max_atual.rodada > 19
+                    ]
 
-                    df_rmse_sim = pd.DataFrame({'ano_campeonato':list_cols, f'rmse_{ano_analisado}':list_rmse})
-                    df_rmse_sim = df_rmse_sim.sort_values(df_rmse_sim.columns[-1]).reset_index(drop = True)
+                    list_rmse = []
 
-                    #ano com maior similaridade por RMSE com o ano analisado
-                    ano_min_rmse_sim = df_rmse_sim.ano_campeonato.iloc[1]
-                    min_rmse = df_rmse_sim.iloc[1,1]
-                    print(f'{"#"*50}\nANO: {ano_analisado} | RODADA: {rodada_max} | Maior Similaridade com pos#1 de {ano_min_rmse_sim}\n{"#"*50}')
-                    #######################################
+                    for col in list_cols:
+                        if col == ano_analisado:
+                            list_rmse.append(0)
+                            continue
 
-                    plt.figure(figsize = (20,7))
-                    fig = px.line(df_pos1_rodada_max_atual, x ='rodada', y = [int(ano_min_rmse_sim), int(ano_analisado)], title = f'Brasileirão | Ano analisado: {ano_analisado} | Até a rodada: {rodada_max} | Turno 2: Peso 3 <br>Curva pos.1 com maior similaridade por RMSE: Ano {ano_min_rmse_sim} | RMSE {np.round(min_rmse, 4)}</br>')
-                    fig.add_vline(x=19, line_width=3, line_dash="dash", line_color="green")
+                        if df_turno2.empty:
+                            rmse_col = rmse(
+                                df_turno1[ano_analisado],
+                                df_turno1[col]
+                            )
+                        else:
+                            rmse_col_t1 = rmse(
+                                df_turno1[ano_analisado],
+                                df_turno1[col]
+                            )
+
+                            rmse_col_t2 = rmse(
+                                df_turno2[ano_analisado],
+                                df_turno2[col]
+                            )
+
+                            rmse_col = (rmse_col_t1 + (3 * rmse_col_t2)) / 4
+
+                        list_rmse.append(rmse_col)
+
+                    df_rmse_sim = pd.DataFrame({
+                        'ano_campeonato': list_cols,
+                        f'rmse_{ano_analisado}': list_rmse
+                    })
+
+                    df_rmse_sim = df_rmse_sim.sort_values(
+                        f'rmse_{ano_analisado}'
+                    ).reset_index(drop=True)
+
+                    df_rmse_sim = df_rmse_sim.loc[
+                        df_rmse_sim['ano_campeonato'] != ano_analisado
+                    ].reset_index(drop=True)
+
+                    ano_min_rmse_sim = df_rmse_sim.ano_campeonato.iloc[0]
+                    min_rmse = df_rmse_sim.iloc[0, 1]
+
+                    fig = px.line(
+                        df_pos1_rodada_max_atual,
+                        x='rodada',
+                        y=[int(ano_min_rmse_sim), int(ano_analisado)],
+                        title=(
+                            f'Brasileirão | Ano analisado: {ano_analisado} | '
+                            f'Até a rodada: {rodada_max}<br>'
+                            f'<sup>Curva pos.1 mais similar por RMSE: '
+                            f'Ano {ano_min_rmse_sim} | RMSE {np.round(min_rmse, 4)}</sup></br>'
+                        )
+                    )
+
+                    fig.add_vline(
+                        x=19,
+                        line_width=3,
+                        line_dash="dash",
+                        line_color="green"
+                    )
 
                     return fig, df_rmse_sim, ano_min_rmse_sim, min_rmse
                 
