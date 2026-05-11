@@ -852,9 +852,6 @@ def aba_projecoes(df: pd.DataFrame, modo_aprendiz: bool) -> None:
             f"""
             ### 1 | Curva da posição 1
             Primeiro, o app identifica a pontuação do líder a cada rodada em cada temporada.
-
-            ### 2 | Ano histórico mais parecido
-            Depois, compara a curva do líder de **{ano_analisado}** até a rodada **{rodada_max}** com as demais temporadas.
             """
         )
 
@@ -870,6 +867,15 @@ def aba_projecoes(df: pd.DataFrame, modo_aprendiz: bool) -> None:
             fig = add_linha_primeiro_turno(fig)
             st.plotly_chart(fig, use_container_width=True)
 
+    layout1, layout2 = st.columns([0.35, 0.65], gap="medium")
+    with layout1:
+        st.markdown(
+            f"""
+            ### 2 | Ano histórico mais parecido
+            Depois, compara a curva do líder de **{ano_analisado}** até a rodada **{rodada_max}** com as demais temporadas.
+            """
+        )
+    with layout2:
         with st.expander("2 | Similaridades entre curvas da posição 1", expanded=True):
             try:
                 df_base, df_rmse, ano_similar, min_rmse = identificar_curva_pos1_menor_rmse(df_pos1, ano_analisado, int(rodada_max))
