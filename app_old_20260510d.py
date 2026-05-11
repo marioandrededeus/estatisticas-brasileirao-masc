@@ -317,34 +317,15 @@ def header_app() -> None:
     safe_image(c3, IMG_DIR / "DataIndus_green.png", width=90)
 
 
-def sidebar_app() -> tuple[bool, str]:
+def sidebar_app() -> bool:
     with st.sidebar:
-        st.markdown("## 🧭 Navegação")
-        pagina = st.radio(
-            "Escolha uma análise",
-            [
-                "🚀 Tour de 3 minutos",
-                "🔥 Histórias dos dados",
-                "🏟️ Comece por aqui",
-                "📈 Corrida rodada a rodada",
-                "🤖 Máquina de palpites didáticos",
-                "🧠 Futebol, Vetores e IA",
-                "🎲 Laboratório de estatística",
-                "🔮 Mito ou verdade?",
-                "🏆 Hall dos campeões",
-                "📅 Raio-X da temporada",
-                "⚔️ Duelo de campanhas",
-            ],
-            index=0,
-        )
-
-        st.markdown("---")
+        safe_image(st, IMG_DIR / "DataIndus_green.png", width=150)
         st.markdown("## 🎓 Experiência")
-        st.caption("Ative as explicações para aprender os conceitos por trás das análises.")
+        st.caption("A navegação foi pensada para funcionar melhor no celular: menos abas horizontais e mais páginas guiadas.")
         modo_aprendiz = st.toggle(
             "Modo aprendiz",
             value=True,
-            help="Mostra explicações simples sobre os conceitos estatísticos usados nas análises.",
+            help="Ative para ver explicações simples sobre os conceitos de Data Science usados no app.",
         )
 
         st.markdown("---")
@@ -357,24 +338,21 @@ def sidebar_app() -> tuple[bool, str]:
             st.write("Mede o quanto os valores estão espalhados em relação à média.")
         with st.expander("RMSE"):
             st.write("Mede a distância média entre duas curvas. Quanto menor o RMSE, mais parecidas elas são.")
-        with st.expander("Similaridade de cosseno"):
-            st.write("Mede se dois vetores apontam em direções parecidas. É útil para comparar padrões, mas pode ignorar diferenças de escala.")
-        with st.expander("Embeddings"):
-            st.write("Representações numéricas de objetos, como textos, imagens ou campanhas, para permitir comparação por proximidade.")
+        with st.expander("Similaridade"):
+            st.write("No app, similaridade significa comportamento parecido entre curvas. Não significa probabilidade real.")
 
         st.markdown("---")
-        safe_image(st, IMG_DIR / "DataIndus_green.png", width=130)
         st.markdown(
             """
-            **Mario André de Deus**  
-            Conteúdo sobre Python, Estatística, Machine Learning, Engenharia de Dados e aplicações industriais.
+            **DataIndus**  
+            Conteúdo de Python, Estatística, Machine Learning, Engenharia de Dados e aplicações industriais.
 
-            **LinkedIn:** Mario André de Deus  
-            **GitHub do projeto:** [estatisticas-brasileirao-masc](https://github.com/marioandrededeus/estatisticas-brasileirao-masc)
+            - YouTube: @dataindus
+            - LinkedIn: Mario André de Deus
+            - Medium: Brasileirão sob um olhar estatístico
             """
         )
-
-    return modo_aprendiz, pagina
+    return modo_aprendiz
 
 # =============================================================================
 # ABAS
@@ -947,9 +925,9 @@ def card_vertical(titulo: str, texto: str, icone: str = "📌") -> None:
 
 
 def insight_linkedin(titulo: str, texto: str, key: str) -> None:
-    """Bloco com análise pronta para o usuário copiar, adaptar ou printar."""
-    with st.expander(f"📣 Análise pronta para compartilhar — {titulo}", expanded=False):
-        st.text_area("Texto para copiar ou usar como legenda", texto.strip(), height=230, key=key)
+    """Bloco reaproveitável para estimular compartilhamento no LinkedIn."""
+    with st.expander(f"📣 Insight pronto para LinkedIn — {titulo}", expanded=False):
+        st.text_area("Copie, adapte e poste", texto.strip(), height=230, key=key)
 
 
 def similaridade_cosseno_manual(a, b) -> float:
@@ -967,7 +945,8 @@ def aba_tour_3_minutos(df: pd.DataFrame, modo_aprendiz: bool) -> None:
         """
         # 🚀 Tour de 3 minutos
 
-        Comece por aqui: escolha uma provocação, veja um achado dos dados e aprofunde a análise nas páginas seguintes.
+        Se você veio do LinkedIn, comece por aqui. A ideia é transformar uma curiosidade sobre futebol
+        em uma pequena jornada de Ciência de Dados.
         """
     )
 
@@ -995,13 +974,13 @@ def aba_tour_3_minutos(df: pd.DataFrame, modo_aprendiz: bool) -> None:
 
     insight_linkedin(
         "Tour de 3 minutos",
-        """O Brasileirão também pode ser lido como uma história contada por dados.
+        """Transformei o Brasileirão em um laboratório de Data Science com Streamlit.
 
-Campanhas rodada a rodada viram séries temporais. Pontos, vitórias e saldo de gols ajudam a comparar regularidade, arrancadas e quedas de desempenho.
+A ideia foi comparar campanhas rodada a rodada usando séries temporais, RMSE e uma discussão sobre similaridade vetorial.
 
-Um ponto interessante: a similaridade de cosseno ajuda a comparar a direção de duas campanhas, enquanto o RMSE mede a distância entre as curvas. Para comparar campanhas rodada a rodada, RMSE costuma ser mais intuitivo.
+O ponto mais interessante: similaridade de cosseno foi uma hipótese inicial, conectada à lógica de embeddings, mas RMSE fez mais sentido para comparar a distância entre curvas de campanhas.
 
-Futebol é uma ótima porta de entrada para Estatística, Machine Learning e pensamento analítico.""",
+Futebol também pode ser uma ótima porta de entrada para Estatística, Machine Learning e pensamento analítico.""",
         key="linkedin_texto_tour",
     )
 
@@ -1227,9 +1206,9 @@ def aba_vetores_ia(df: pd.DataFrame, modo_aprendiz: bool) -> None:
         "Futebol, Vetores e IA",
         """O que Brasileirão, embeddings e RMSE têm em comum?
 
-Uma campanha rodada a rodada pode ser representada como um vetor de desempenho. A partir daí, dá para comparar campanhas usando ideias parecidas com as de embeddings e sistemas de recomendação.
+Em um projeto com Streamlit, tratei campanhas rodada a rodada como vetores de desempenho. A primeira hipótese foi usar similaridade de cosseno, conceito muito próximo da lógica usada para comparar embeddings.
 
-A similaridade de cosseno ajuda a comparar a direção dos vetores. Já o RMSE mede a distância entre as curvas rodada a rodada.
+Mas a métrica final ficou com RMSE, porque a pergunta principal era comparar a distância entre curvas de campanhas, não apenas a direção dos vetores.
 
 Boa lembrança de modelagem: a melhor métrica não é a mais famosa; é a que responde melhor à pergunta do problema.""",
         key="linkedin_texto_vetores",
@@ -1240,8 +1219,29 @@ Boa lembrança de modelagem: a melhor métrica não é a mais famosa; é a que r
 # =============================================================================
 def main() -> None:
     df = carregar_dados()
-    modo_aprendiz, pagina = sidebar_app()
+    modo_aprendiz = sidebar_app()
     header_app()
+
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("## 🧭 Navegação")
+    pagina = st.sidebar.radio(
+        "Escolha uma página",
+        [
+            "🚀 Tour de 3 minutos",
+            "🔥 Histórias dos dados",
+            "🏟️ Comece por aqui",
+            "📈 Corrida rodada a rodada",
+            "🤖 Máquina de palpites didáticos",
+            "🧠 Futebol, Vetores e IA",
+            "🎲 Laboratório de estatística",
+            "🔮 Mito ou verdade?",
+            "🏆 Hall dos campeões",
+            "📅 Raio-X da temporada",
+            "⚔️ Duelo de campanhas",
+        ],
+        index=0,
+        help="A navegação por rádio costuma ficar mais amigável no celular do que muitas abas horizontais.",
+    )
 
     if pagina == "🚀 Tour de 3 minutos":
         aba_tour_3_minutos(df, modo_aprendiz)

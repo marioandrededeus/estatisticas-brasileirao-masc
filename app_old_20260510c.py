@@ -12,8 +12,6 @@ Principais melhorias desta versão:
 - Cache de dados.
 - Gráficos responsivos com use_container_width=True.
 - Textos revisados para evitar interpretação de projeção como aposta.
-- Nova navegação por st.sidebar.radio, mais amigável para mobile.
-- Novas páginas: Tour de 3 minutos, Histórias dos dados e Futebol, Vetores e IA.
 """
 
 from pathlib import Path
@@ -25,13 +23,7 @@ import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import streamlit as st
-try:
-    from sklearn.metrics import root_mean_squared_error as rmse
-except ImportError:  # compatibilidade com versões antigas do scikit-learn
-    from sklearn.metrics import mean_squared_error
-
-    def rmse(y_true, y_pred):
-        return float(mean_squared_error(y_true, y_pred, squared=False))
+from sklearn.metrics import root_mean_squared_error as rmse
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -42,18 +34,6 @@ BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "dados"
 IMG_DIR = BASE_DIR / "images"
 ESCUDOS_DIR = IMG_DIR / "escudos"
-
-DATA_CANDIDATES = [
-    DATA_DIR / "df_completo.parquet",
-    BASE_DIR / "df_completo.parquet",
-]
-
-REQUIRED_COLUMNS = [
-    "ano_campeonato", "rodada", "time", "adversário", "gols_pro", "gols_contra",
-    "pontos_acum", "jogos_acum", "vitorias_acum", "empates_acum", "derrotas_acum",
-    "gols_pro_acum", "gols_contra_acum", "saldo_gols_acum",
-    "classificacao_1o_turno", "classificacao_final",
-]
 
 st.set_page_config(
     page_title="Brasileirão | Olhar estatístico",
@@ -110,25 +90,15 @@ COLUMN_LABELS = {
 @st.cache_data(show_spinner="Carregando dados do Brasileirão...")
 def carregar_dados() -> pd.DataFrame:
     """Carrega e prepara a base consolidada do Brasileirão."""
-    data_path = next((path for path in DATA_CANDIDATES if path.exists()), None)
-    if data_path is None:
-        caminhos = "\n".join(f"- {path}" for path in DATA_CANDIDATES)
+    data_path = DATA_DIR / "df_completo.parquet"
+    if not data_path.exists():
         st.error(
-            "Arquivo de dados não encontrado. Salve o arquivo em um destes caminhos:\n"
-            f"{caminhos}"
+            f"Arquivo de dados não encontrado: {data_path}. "
+            "Verifique se a pasta 'dados' está no mesmo diretório do app.py."
         )
         st.stop()
 
     df = pd.read_parquet(data_path)
-
-    missing_cols = [col for col in REQUIRED_COLUMNS if col not in df.columns]
-    if missing_cols:
-        st.error(
-            "A base carregada não possui todas as colunas esperadas. "
-            f"Colunas ausentes: {', '.join(missing_cols)}"
-        )
-        st.stop()
-
     df = df.loc[df["ano_campeonato"] >= 2006].copy()
     df = df.dropna(subset=["gols_pro"])
 
@@ -317,34 +287,14 @@ def header_app() -> None:
     safe_image(c3, IMG_DIR / "DataIndus_green.png", width=90)
 
 
-def sidebar_app() -> tuple[bool, str]:
+def sidebar_app() -> bool:
     with st.sidebar:
-        st.markdown("## 🧭 Navegação")
-        pagina = st.radio(
-            "Escolha uma análise",
-            [
-                "🚀 Tour de 3 minutos",
-                "🔥 Histórias dos dados",
-                "🏟️ Comece por aqui",
-                "📈 Corrida rodada a rodada",
-                "🤖 Máquina de palpites didáticos",
-                "🧠 Futebol, Vetores e IA",
-                "🎲 Laboratório de estatística",
-                "🔮 Mito ou verdade?",
-                "🏆 Hall dos campeões",
-                "📅 Raio-X da temporada",
-                "⚔️ Duelo de campanhas",
-            ],
-            index=0,
-        )
-
-        st.markdown("---")
+        safe_image(st, IMG_DIR / "DataIndus_green.png", width=150)
         st.markdown("## 🎓 Experiência")
-        st.caption("Ative as explicações para aprender os conceitos por trás das análises.")
         modo_aprendiz = st.toggle(
             "Modo aprendiz",
             value=True,
-            help="Mostra explicações simples sobre os conceitos estatísticos usados nas análises.",
+            help="Ative para ver explicações simples sobre os conceitos de Data Science usados no app.",
         )
 
         st.markdown("---")
@@ -357,24 +307,21 @@ def sidebar_app() -> tuple[bool, str]:
             st.write("Mede o quanto os valores estão espalhados em relação à média.")
         with st.expander("RMSE"):
             st.write("Mede a distância média entre duas curvas. Quanto menor o RMSE, mais parecidas elas são.")
-        with st.expander("Similaridade de cosseno"):
-            st.write("Mede se dois vetores apontam em direções parecidas. É útil para comparar padrões, mas pode ignorar diferenças de escala.")
-        with st.expander("Embeddings"):
-            st.write("Representações numéricas de objetos, como textos, imagens ou campanhas, para permitir comparação por proximidade.")
+        with st.expander("Similaridade"):
+            st.write("No app, similaridade significa comportamento parecido entre curvas. Não significa probabilidade real.")
 
         st.markdown("---")
-        safe_image(st, IMG_DIR / "DataIndus_green.png", width=130)
         st.markdown(
             """
-            **Mario André de Deus**  
-            Conteúdo sobre Python, Estatística, Machine Learning, Engenharia de Dados e aplicações industriais.
+            **DataIndus**  
+            Conteúdo de Python, Estatística, Machine Learning, Engenharia de Dados e aplicações industriais.
 
-            **LinkedIn:** Mario André de Deus  
-            **GitHub do projeto:** [estatisticas-brasileirao-masc](https://github.com/marioandrededeus/estatisticas-brasileirao-masc)
+            - YouTube: @dataindus
+            - LinkedIn: Mario André de Deus
+            - Medium: Brasileirão sob um olhar estatístico
             """
         )
-
-    return modo_aprendiz, pagina
+    return modo_aprendiz
 
 # =============================================================================
 # ABAS
@@ -418,7 +365,7 @@ def aba_home(df: pd.DataFrame, modo_aprendiz: bool) -> None:
     c1.metric("Temporadas", f"{df.ano_campeonato.min()}–{df.ano_campeonato.max()}")
     c2.metric("Times na base", df["time"].nunique())
     c3.metric("Rodadas registradas", int(df[["ano_campeonato", "rodada"]].drop_duplicates().shape[0]))
-    c4.metric("Registros na base", df.shape[0])
+    c4.metric("Jogos/time registrados", df.shape[0])
 
     if modo_aprendiz:
         bloco_didatico(
@@ -852,9 +799,6 @@ def aba_projecoes(df: pd.DataFrame, modo_aprendiz: bool) -> None:
             f"""
             ### 1 | Curva da posição 1
             Primeiro, o app identifica a pontuação do líder a cada rodada em cada temporada.
-
-            ### 2 | Ano histórico mais parecido
-            Depois, compara a curva do líder de **{ano_analisado}** até a rodada **{rodada_max}** com as demais temporadas.
             """
         )
 
@@ -870,6 +814,15 @@ def aba_projecoes(df: pd.DataFrame, modo_aprendiz: bool) -> None:
             fig = add_linha_primeiro_turno(fig)
             st.plotly_chart(fig, use_container_width=True)
 
+    layout1, layout2 = st.columns([0.35, 0.65], gap="medium")
+    with layout1:
+        st.markdown(
+            f"""
+            ### 2 | Ano histórico mais parecido
+            Depois, compara a curva do líder de **{ano_analisado}** até a rodada **{rodada_max}** com as demais temporadas.
+            """
+        )
+    with layout2:
         with st.expander("2 | Similaridades entre curvas da posição 1", expanded=True):
             try:
                 df_base, df_rmse, ano_similar, min_rmse = identificar_curva_pos1_menor_rmse(df_pos1, ano_analisado, int(rodada_max))
@@ -923,348 +876,43 @@ def aba_projecoes(df: pd.DataFrame, modo_aprendiz: bool) -> None:
             st.info("Times mais similares por RMSE ponderado:")
             st.dataframe(df_rmse_times.rename(columns={rmse_col: "RMSE ponderado"}).round(3), use_container_width=True, hide_index=True)
 
-
-
-# =============================================================================
-# NOVAS ABAS / PÁGINAS PARA ENGAJAMENTO E NARRATIVA
-# =============================================================================
-def card_vertical(titulo: str, texto: str, icone: str = "📌") -> None:
-    """Card simples em HTML para funcionar melhor no mobile do que muitas colunas lado a lado."""
-    st.markdown(
-        f"""
-        <div style="
-            padding: 1rem;
-            border-radius: 14px;
-            border: 1px solid rgba(128,128,128,.25);
-            margin-bottom: .85rem;
-            background: rgba(250,250,250,.04);">
-            <h4 style="margin-bottom:.35rem;">{icone} {titulo}</h4>
-            <p style="margin-bottom:0; line-height:1.45;">{texto}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def insight_linkedin(titulo: str, texto: str, key: str) -> None:
-    """Bloco com análise pronta para o usuário copiar, adaptar ou printar."""
-    with st.expander(f"📣 Análise pronta para compartilhar — {titulo}", expanded=False):
-        st.text_area("Texto para copiar ou usar como legenda", texto.strip(), height=230, key=key)
-
-
-def similaridade_cosseno_manual(a, b) -> float:
-    """Calcula similaridade de cosseno entre dois vetores numéricos."""
-    a = np.asarray(a, dtype=float)
-    b = np.asarray(b, dtype=float)
-    denom = np.linalg.norm(a) * np.linalg.norm(b)
-    if denom == 0:
-        return np.nan
-    return float(np.dot(a, b) / denom)
-
-
-def aba_tour_3_minutos(df: pd.DataFrame, modo_aprendiz: bool) -> None:
-    st.markdown(
-        """
-        # 🚀 Tour de 3 minutos
-
-        Comece por aqui: escolha uma provocação, veja um achado dos dados e aprofunde a análise nas páginas seguintes.
-        """
-    )
-
-    st.success(
-        """
-        **Desafio rápido:** escolha uma provocação, observe o gráfico sugerido e tente responder com dados — não apenas com opinião de torcedor.
-        """
-    )
-
-    card_vertical(
-        "Campeão nasce no 1º turno?",
-        "Abra a página 'Mito ou verdade?' e veja quantos líderes do 1º turno realmente terminaram campeões.",
-        "🏆",
-    )
-    card_vertical(
-        "Campanhas podem virar vetores?",
-        "Na página 'Futebol, Vetores e IA', uma campanha rodada a rodada é tratada como vetor para explicar RMSE, cosseno e embeddings.",
-        "🧠",
-    )
-    card_vertical(
-        "Qual campeonato foi mais equilibrado?",
-        "No 'Laboratório estatístico', ordene por desvio padrão e veja quais anos tiveram menor dispersão de pontos.",
-        "🎲",
-    )
-
-    insight_linkedin(
-        "Tour de 3 minutos",
-        """O Brasileirão também pode ser lido como uma história contada por dados.
-
-Campanhas rodada a rodada viram séries temporais. Pontos, vitórias e saldo de gols ajudam a comparar regularidade, arrancadas e quedas de desempenho.
-
-Um ponto interessante: a similaridade de cosseno ajuda a comparar a direção de duas campanhas, enquanto o RMSE mede a distância entre as curvas. Para comparar campanhas rodada a rodada, RMSE costuma ser mais intuitivo.
-
-Futebol é uma ótima porta de entrada para Estatística, Machine Learning e pensamento analítico.""",
-        key="linkedin_texto_tour",
-    )
-
-    if modo_aprendiz:
-        bloco_didatico(
-            pergunta="Por que começar por uma história?",
-            conceito="Storytelling analítico: dados ficam mais memoráveis quando respondem a uma pergunta concreta.",
-            acao="Use uma provocação como ponto de partida antes de abrir tabelas e filtros.",
-        )
-
-
-def aba_historias_dados(df: pd.DataFrame, modo_aprendiz: bool) -> None:
-    st.markdown("# 🔥 Histórias que os dados contam")
-    st.write("Uma página mais narrativa, pensada para gerar curiosidade antes de mergulhar nos gráficos técnicos.")
-
-    final = df.loc[df["rodada"] == 38].copy()
-    campeoes = final.loc[final["classificacao_final"] == 1].copy()
-
-    if campeoes.empty:
-        st.info("Ainda não há temporadas completas suficientes para gerar os cards de histórias.")
-        return
-
-    campeao_mais_pontos = campeoes.loc[campeoes["pontos_acum"].idxmax()]
-    campeao_menos_pontos = campeoes.loc[campeoes["pontos_acum"].idxmin()]
-
-    dispersao = final.groupby("ano_campeonato")["pontos_acum"].std().reset_index(name="desvio_padrao_pontos")
-    ano_mais_equilibrado = dispersao.loc[dispersao["desvio_padrao_pontos"].idxmin()]
-    ano_mais_desigual = dispersao.loc[dispersao["desvio_padrao_pontos"].idxmax()]
-
-    turno_final = (
-        df.groupby(["ano_campeonato", "time"])[["classificacao_1o_turno", "classificacao_final"]]
-        .max()
-        .reset_index()
-    )
-    lideres = turno_final.loc[turno_final["classificacao_1o_turno"] == 1]
-    total_lideres = len(lideres)
-    lideres_campeoes = int((lideres["classificacao_final"] == 1).sum())
-    pct_lideres = 100 * lideres_campeoes / total_lideres if total_lideres else 0
-
-    card_vertical(
-        "O campeão mais dominante em pontos",
-        f"{campeao_mais_pontos['time']} em {int(campeao_mais_pontos['ano_campeonato'])}: {int(campeao_mais_pontos['pontos_acum'])} pontos.",
-        "🚀",
-    )
-    card_vertical(
-        "O campeão com menor pontuação",
-        f"{campeao_menos_pontos['time']} em {int(campeao_menos_pontos['ano_campeonato'])}: {int(campeao_menos_pontos['pontos_acum'])} pontos.",
-        "🧩",
-    )
-    card_vertical(
-        "O ano mais equilibrado por desvio padrão",
-        f"{int(ano_mais_equilibrado['ano_campeonato'])}, com desvio padrão de {ano_mais_equilibrado['desvio_padrao_pontos']:.2f} pontos.",
-        "⚖️",
-    )
-    card_vertical(
-        "O ano mais desigual por desvio padrão",
-        f"{int(ano_mais_desigual['ano_campeonato'])}, com desvio padrão de {ano_mais_desigual['desvio_padrao_pontos']:.2f} pontos.",
-        "📊",
-    )
-    card_vertical(
-        "Liderar no 1º turno ajuda, mas não garante",
-        f"Na base analisada, {lideres_campeoes} de {total_lideres} líderes do 1º turno foram campeões ({pct_lideres:.1f}%).",
-        "🔮",
-    )
-
-    st.markdown("### Escolha uma história para investigar")
-    historia = st.selectbox(
-        "História guiada",
-        [
-            "O campeão mais dominante",
-            "O campeão com menor pontuação",
-            "Ano mais equilibrado",
-            "Líder do 1º turno vira campeão?",
-        ],
-        key="historia_guiada",
-    )
-
-    if historia == "O campeão mais dominante":
-        ano = int(campeao_mais_pontos["ano_campeonato"])
-        times = [campeao_mais_pontos["time"]]
-        texto = "Acompanhe rodada a rodada como a campanha mais dominante abriu distância."
-    elif historia == "O campeão com menor pontuação":
-        ano = int(campeao_menos_pontos["ano_campeonato"])
-        times = [campeao_menos_pontos["time"]]
-        texto = "Veja como um campeonato mais embolado pode produzir um campeão com pontuação menor."
-    elif historia == "Ano mais equilibrado":
-        ano = int(ano_mais_equilibrado["ano_campeonato"])
-        times = sorted(df.loc[df["ano_campeonato"] == ano, "time"].dropna().unique())
-        texto = "Neste ano, a dispersão final de pontos foi a menor da base analisada."
-    else:
-        st.info("Para investigar esta história em detalhes, abra a página 'Mito ou verdade?'.")
-        return
-
-    st.info(texto)
-    df_plot = df.loc[(df["ano_campeonato"] == ano) & (df["time"].isin(times))].copy()
-    fig = px.line(
-        df_plot,
-        x="rodada",
-        y="pontos_acum",
-        color="time",
-        title=f"{historia} | Brasileirão {ano}",
-        hover_data=["adversário", "classificacao_final"],
-        labels=COLUMN_LABELS | {"pontos_acum": "Pontos acumulados"},
-    )
-    fig = add_linha_primeiro_turno(fig)
-    st.plotly_chart(fig, use_container_width=True)
-
-    if modo_aprendiz:
-        bloco_didatico(
-            pergunta="Por que esses cards ajudam?",
-            conceito="Análise exploratória orientada por perguntas.",
-            acao="Use uma história como hipótese inicial e depois valide nos gráficos.",
-        )
-
-
-def aba_vetores_ia(df: pd.DataFrame, modo_aprendiz: bool) -> None:
-    st.markdown("# 🧠 Futebol, Vetores e IA")
-    st.markdown(
-        """
-        Uma campanha de futebol pode ser vista como uma sequência de números: pontos acumulados, vitórias,
-        saldo de gols ou posição rodada a rodada. Em Ciência de Dados, essa sequência pode ser tratada como um vetor.
-
-        Isso cria uma ponte conceitual com sistemas de recomendação, busca semântica, embeddings e LLMs:
-        objetos complexos são transformados em vetores e depois comparados por alguma métrica de similaridade.
-        """
-    )
-
-    st.warning(
-        """
-        Este app não usa LLMs nem transformers para prever o Brasileirão. A conexão com embeddings é didática:
-        transformar campanhas em vetores e comparar proximidade entre elas.
-        """
-    )
-
-    if modo_aprendiz:
-        bloco_didatico(
-            pergunta="O que futebol tem a ver com embeddings?",
-            conceito="Representação vetorial: transformar uma sequência em números comparáveis.",
-            acao="Compare duas campanhas e veja como RMSE e cosseno contam histórias diferentes.",
-        )
-
-    st.markdown("## 📐 A hipótese inicial: similaridade de cosseno")
-    st.markdown(
-        """
-        A similaridade de cosseno mede se dois vetores apontam em direções parecidas. Ela é muito útil quando o
-        interesse principal é comparar **formato** ou **direção** do comportamento.
-
-        No Brasileirão, a pergunta seria: duas campanhas evoluem em uma direção parecida ao longo das rodadas?
-        """
-    )
-
-    st.markdown("## 📏 A métrica mantida: RMSE")
-    st.markdown(
-        """
-        O RMSE mede a distância ponto a ponto entre duas curvas. Para comparar campanhas rodada a rodada,
-        ele foi mais adequado porque penaliza diferenças absolutas de pontuação.
-        """
-    )
-
-    st.markdown("### ⚖️ Comparador didático: RMSE vs Cosseno")
-    anos = sorted([int(a) for a in df["ano_campeonato"].dropna().unique()])
-    c1, c2, c3 = st.columns([0.25, 0.25, 0.5])
-    ano_a = c1.selectbox("Campanha A", anos, index=max(0, len(anos) - 1), key="vetor_ano_a")
-    ano_b = c2.selectbox("Campanha B", anos, index=max(0, len(anos) - 2), key="vetor_ano_b")
-    metrica = metric_selectbox("Métrica para vetorizar", key="vetor_metrica", default="pontos_acum")
-
-    max_rodada_a = rodada_max_valida(df.loc[df["ano_campeonato"] == ano_a])
-    max_rodada_b = rodada_max_valida(df.loc[df["ano_campeonato"] == ano_b])
-    max_rodada_comum = max(1, min(max_rodada_a, max_rodada_b, 38))
-    rodada_limite = st.slider("Comparar até a rodada", min_value=1, max_value=max_rodada_comum, value=max_rodada_comum, key="vetor_rodada")
-
-    # Para simplificar a comparação, usamos a curva do líder de cada rodada.
-    curvas = (
-        df.loc[df["rodada"] <= rodada_limite]
-        .groupby(["ano_campeonato", "rodada"])[metrica]
-        .max()
-        .reset_index()
-        .pivot(index="rodada", columns="ano_campeonato", values=metrica)
-        .reset_index()
-    )
-
-    if ano_a not in curvas.columns or ano_b not in curvas.columns:
-        st.info("Não há dados suficientes para comparar essas campanhas.")
-        return
-
-    base = curvas[["rodada", ano_a, ano_b]].dropna().copy()
-    if base.empty:
-        st.info("Não há rodadas em comum suficientes para comparação.")
-        return
-
-    valor_rmse = rmse(base[ano_a], base[ano_b])
-    valor_cosseno = similaridade_cosseno_manual(base[ano_a], base[ano_b])
-
-    c1, c2 = st.columns(2)
-    c1.metric("RMSE", f"{valor_rmse:.3f}", help="Quanto menor, mais próximas estão as curvas rodada a rodada.")
-    c2.metric("Similaridade de cosseno", f"{valor_cosseno:.4f}", help="Quanto mais perto de 1, mais parecida é a direção dos vetores.")
-
-    fig = px.line(
-        base,
-        x="rodada",
-        y=[ano_a, ano_b],
-        title=f"Curva do líder por rodada | {METRIC_LABELS[metrica]} | {ano_a} vs {ano_b}",
-        labels={"value": METRIC_LABELS[metrica], "rodada": "Rodada", "variable": "Ano"},
-    )
-    fig = add_linha_primeiro_turno(fig)
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown(
-        """
-        ### 🎓 Lição de modelagem
-
-        A similaridade de cosseno pode indicar curvas com direção parecida, mesmo quando a diferença absoluta de pontos é relevante.
-        O RMSE, por outro lado, mede a distância direta entre as curvas.
-
-        Por isso, a escolha da métrica depende da pergunta do projeto:
-        - se a pergunta é sobre **formato**, cosseno pode ser interessante;
-        - se a pergunta é sobre **proximidade rodada a rodada**, RMSE tende a ser mais interpretável;
-        - se a pergunta é previsão real, seria necessário outro desenho experimental, validação temporal e avaliação fora da amostra.
-        """
-    )
-
-    insight_linkedin(
-        "Futebol, Vetores e IA",
-        """O que Brasileirão, embeddings e RMSE têm em comum?
-
-Uma campanha rodada a rodada pode ser representada como um vetor de desempenho. A partir daí, dá para comparar campanhas usando ideias parecidas com as de embeddings e sistemas de recomendação.
-
-A similaridade de cosseno ajuda a comparar a direção dos vetores. Já o RMSE mede a distância entre as curvas rodada a rodada.
-
-Boa lembrança de modelagem: a melhor métrica não é a mais famosa; é a que responde melhor à pergunta do problema.""",
-        key="linkedin_texto_vetores",
-    )
-
 # =============================================================================
 # APP PRINCIPAL
 # =============================================================================
 def main() -> None:
     df = carregar_dados()
-    modo_aprendiz, pagina = sidebar_app()
+    modo_aprendiz = sidebar_app()
     header_app()
 
-    if pagina == "🚀 Tour de 3 minutos":
-        aba_tour_3_minutos(df, modo_aprendiz)
-    elif pagina == "🔥 Histórias dos dados":
-        aba_historias_dados(df, modo_aprendiz)
-    elif pagina == "🏟️ Comece por aqui":
+    tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
+        [
+            "🏟️ Comece por aqui",
+            "🏆 Hall dos campeões",
+            "📅 Raio-X da temporada",
+            "📈 Corrida rodada a rodada",
+            "⚔️ Duelo de campanhas",
+            "🎲 Laboratório de estatística",
+            "🔮 Mito ou verdade?",
+            "🤖 Máquina de palpites didáticos",
+        ]
+    )
+
+    with tab0:
         aba_home(df, modo_aprendiz)
-    elif pagina == "📈 Corrida rodada a rodada":
-        aba_evolucao(df, modo_aprendiz)
-    elif pagina == "🤖 Máquina de palpites didáticos":
-        aba_projecoes(df, modo_aprendiz)
-    elif pagina == "🧠 Futebol, Vetores e IA":
-        aba_vetores_ia(df, modo_aprendiz)
-    elif pagina == "🎲 Laboratório de estatística":
-        aba_distribuicoes(df, modo_aprendiz)
-    elif pagina == "🔮 Mito ou verdade?":
-        aba_mito_verdade(df, modo_aprendiz)
-    elif pagina == "🏆 Hall dos campeões":
+    with tab1:
         aba_campeoes(df, modo_aprendiz)
-    elif pagina == "📅 Raio-X da temporada":
+    with tab2:
         aba_raio_x(df, modo_aprendiz)
-    elif pagina == "⚔️ Duelo de campanhas":
+    with tab3:
+        aba_evolucao(df, modo_aprendiz)
+    with tab4:
         aba_comparativos(df, modo_aprendiz)
+    with tab5:
+        aba_distribuicoes(df, modo_aprendiz)
+    with tab6:
+        aba_mito_verdade(df, modo_aprendiz)
+    with tab7:
+        aba_projecoes(df, modo_aprendiz)
 
 
 if __name__ == "__main__":
